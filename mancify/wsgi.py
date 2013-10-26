@@ -8,6 +8,7 @@ from __future__ import (
 # Make Py2's str type like Py3's
 str = type('')
 
+import re
 import logging
 import socket
 from datetime import datetime
@@ -30,6 +31,7 @@ class MancifyWsgiApp(object):
         self.exec_timeout = kwargs.get('exec_timeout', 10)
         self.connect_timeout = kwargs.get('connect_timeout', 30)
         self.session_timeout = kwargs.get('session_timeout', 300)
+        self.output_limit = kwargs.get('output_limit', 1024)
         self.router = PathRouter()
         self.router.add_routes([
             url('/',    self.do_index),
@@ -147,13 +149,46 @@ class MancifyWsgiApp(object):
 
     def mobile_send(self, mobile, content, sender=None):
         logging.debug('Sending message to %s', mobile)
-        while content:
+        for chunk in self.mobile_format(content):
             # Send up to 459 characters at a time (the maximum length of a
             # triple concatenated SMS message)
-            msg = clockwork.SMS(
-                to=mobile, message=content[:SMS_MAX_LENGTH], from_name=sender)
+            msg = clockwork.SMS(to=mobile, message=chunk, from_name=sender)
             response = self.sms_api.send(msg)
             if not response.success:
                 logging.error('%s %s', response.error_code, response.error_description)
-            content = content[SMS_MAX_LENGTH:]
 
+    def mobile_format(self, content):
+        # Replace multiple consecutive spaces and line breaks with individual
+        # spaces and line breaks (no sense wasting credits on them)
+        content = content.strip()
+        content = re.sub(' +', ' ', content)
+        content = re.sub('\r\n', '\n', content)
+        content = re.sub('\n+', '\n', content)
+        # If necessary, chunk content into SMS_MAX_LENGTH chunks, prefixing
+        # each with a page number
+        if len(content) < SMS_MAX_LENGTH:
+            yield content
+        else:
+            sent = 0
+            page = 1
+            while content and sent < self.output_limit:
+                content = 'p%d:\n%s' % (page, content.strip())
+                if sent + SMS_MAX_LENGTH > self.output_limit:
+                    chunk = content[:SMS_MAX_LENGTH - 3] + '...'
+                    content = ''
+                elif len(content) < SMS_MAX_LENGTH:
+                    chunk = content
+                    content = ''
+                else:
+                    # Try and split on a line break or a space if one is near
+                    # the end of the current chunk
+                    match = re.match('(.*)[ \n](.*)', content[:SMS_MAX_LENGTH], re.DOTALL)
+                    if match and len(match.group(2)) < 10:
+                        chunk = match.group(1)
+                        content = match.group(2) + content[SMS_MAX_LENGTH:]
+                    else:
+                        chunk = content[:SMS_MAX_LENGTH]
+                        content = content[SMS_MAX_LENGTH:]
+                yield chunk
+                sent += len(chunk)
+                page += 1
