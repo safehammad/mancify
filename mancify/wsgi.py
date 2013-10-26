@@ -17,13 +17,13 @@ from wheezy.routing import PathRouter, url
 from webob import Request, Response, exc
 from clockwork import clockwork
 
-import translator
-import dialects.manc
-import dialects.normal
+from . import translator
+from .dialects import manc
+from .dialects import normal
 
 DIALECTS = { 
-    "manc":     dialects.manc,
-    "normal":   dialects.normal,
+    "manc":     manc,
+    "normal":   normal,
 }
 
 # Maximum length of an SMS message (with triple concatenation, the maximum
