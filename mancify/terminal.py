@@ -9,13 +9,15 @@ from __future__ import (
 str = type('')
 
 import sys
+import os
 import argparse
-import configparser
+import ConfigParser
 import logging
 import locale
 from wsgiref.simple_server import make_server
 
-from mancify import MancifyWsgiApp
+from mancify import __version__
+from mancify.wsgi import MancifyWsgiApp
 
 
 # Use the user's default locale instead of C
@@ -80,16 +82,20 @@ class MancifyConsoleApp(object):
             'listen on. Default: %(default)s')
         self.parser.add_argument(
             '--exec-timeout', dest='exec_timeout', action='store', default=10,
-            type=int, help='the timeout for executing commands over SSH')
+            metavar='SECS', type=int,
+            help='the timeout for executing commands over SSH')
         self.parser.add_argument(
-            '--connect-timeout', dest='connect_timeout', action='store', default=30,
-            type=int, help='the timeout for SSH connections')
+            '--connect-timeout', dest='connect_timeout', action='store',
+            default=30, metavar='SECS', type=int,
+            help='the timeout for SSH connections')
         self.parser.add_argument(
-            '--session-timeout', dest='session_timeout', action='store', default=300,
-            type=int, help='the timeout between SSH commands')
+            '--session-timeout', dest='session_timeout', action='store',
+            default=300, metavar='SECS', type=int,
+            help='the timeout between SSH commands')
         self.parser.add_argument(
             '--clockwork-api-key', dest='clockwork_api_key', action='store',
-            default=None, help='your clockwork API key')
+            metavar='KEY', default=None,
+            help='your clockwork API key')
 
     def __call__(self, args=None):
         if args is None:
@@ -123,14 +129,14 @@ class MancifyConsoleApp(object):
             ]
         if conf_args.config:
             conf_files.append(conf_args.config)
-        config = configparser.ConfigParser(interpolation=None)
+        config = ConfigParser.ConfigParser()
         logging.info('Reading configuration from %s', ', '.join(conf_files))
         conf_read = config.read(conf_files)
         if conf_args.config and conf_args.config not in conf_read:
             self.parser.error('unable to read %s', conf_args.confg)
         if conf_read:
             section = 'mancify'
-            if not section in config:
+            if not section in config.sections():
                 self.parser.error(
                     'unable to locate [%s] section in configuration' % section)
             self.parser.set_defaults(**{
@@ -147,7 +153,7 @@ class MancifyConsoleApp(object):
                     'session_timeout',
                     'clockwork_api_key',
                     )
-                if key in config[section]
+                if config.has_option(section, key)
                 })
         return args
 
