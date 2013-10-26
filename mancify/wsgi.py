@@ -18,13 +18,12 @@ from wheezy.routing import PathRouter, url
 from webob import Request, Response, exc
 from clockwork import clockwork
 
-from . import translator
-from .dialects import manc
-from .dialects import normal
+from mancify import translator
+from mancify.dialects import manc, normal
 
-DIALECTS = { 
-    "manc":     manc,
-    "normal":   normal,
+DIALECTS = {
+    "manc":   manc,
+    "normal": normal,
 }
 
 # Maximum length of an SMS message (with triple concatenation, the maximum
@@ -112,12 +111,13 @@ class MancifyWsgiApp(object):
 
     def ssh_open(self, mobile, content, sender=None):
         try:
-            bits = content.split(',',3)             
-            hostname, username, password = content[:3]
-            dlname = bits[3] if len(bits)>3 else "manc"
+            bits = content.split(',', 3)
+            hostname, username, password = bits[:3]
+            dlname = bits[3] if len(bits) > 3 else "manc"
         except ValueError:
             self.mobile_send(mobile,
-                'Invalid connection request. Please send hostname,username,password[,dialect]',
+                'Invalid connection request. Please send '
+                'hostname,username,password[,dialect]',
                 dialects.normal)
         else:
             dialect = DIALECTS.get(dlname,dialects.manc)
