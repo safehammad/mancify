@@ -17,11 +17,12 @@ class TestMancify(unittest.TestCase):
         self.assertIn(translator.translate('bad'), replacements)
         self.assertIn(translator.translate('poor'), replacements)
 
-    def translate(self):
-        text = 'A line. &A line ^with symbols.\nThe next line.\nAnother line.'
-        expected = ['A', 'lain', '.', '&', 'A', 'lain', '^', 'wihth', 'sihmbulz', '.', '\n', 'The', 'nehkst', 'lain', '.', '\n', 'Another', 'lain', '.']
+    def testTranslate(self):
+        # Includes test for maintaining capitalisation
+        text = 'A line. A& line with^ Symbols.\nThe next Line.\nAnother line.'
+        expected = 'U lain. U& lain wihth^ Sihmbulz.\nThu nehkst Lain.\nUnuthur lain.'
         actual = translator.translate(text)
-        self.assertItemsEqual(expected, actual)
+        self.assertEqual(expected, actual)
 
     def testSpacer(self):
         # Check whitespace is maintained

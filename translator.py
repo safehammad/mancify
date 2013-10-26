@@ -69,11 +69,12 @@ def substitute(tokens, dialect):
 
     """
     for token in tokens:
-        substitution = replace_random(token,dialect)
-        if substitution != token:
-            yield substitution
-        else:
-            yield alter_phonemes(token,dialect)
+        token_lower = token.lower()
+        substitution = replace_random(token_lower, dialect)
+        if substitution == token_lower:
+            substitution = alter_phonemes(token_lower, dialect)
+
+        yield substitution if not token.istitle() else substitution.title()
 
 
 def alter_phonemes(word,dialect):
