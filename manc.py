@@ -82,12 +82,25 @@ words = [
 ]
 
 
+def replace_random(word):
+    """Replace given word with a random Mancunian alternative.
+
+    If a replacement word does not exist, return the original word.
+
+    """
+    for patterns, replacements in words:
+        for pattern in patterns:
+            if word == pattern:
+                return random.choice(replacements)
+
+    # No replacement found
+    return word
+
+
 if __name__ == "__main__":
-    import re,random,sys
-    text = sys.argv[1]
-    for patts,repls in words:
-        for patt in patts:
-            text = re.sub(r'\b'+patt+r'\b',lambda m: random.choice(repls),text)
-    print text
-
-
+	import re,random,sys
+	text = sys.argv[1]
+	for patts,repls in words:
+		for patt in patts:
+			text = re.sub(r'\b'+patt+r'\b',lambda m: random.choice(repls),text)
+	print text
