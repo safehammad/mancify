@@ -127,7 +127,7 @@ def tokenize(text):
 
 
 def untokenize(tokens):
-    """Join a seqence of tokens into a single block of text.
+    """Join a sequence of tokens into a single block of text.
 
     An attempt is made to respect the location of whitespace in the
     original text.
@@ -140,7 +140,7 @@ def untokenize(tokens):
 
         last = token
         for token in tokens:
-            if token.isalnum() and not last.isspace():
+            if any(c.isalnum() for c in token) and not last.isspace():
                 yield ' '
             yield token
             last = token
