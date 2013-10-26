@@ -8,9 +8,9 @@ Try it out!
 -----------
 Example::
 
-    >>> from translator import translate
+    >>> from mancify.translator import translate
     >>> translate('This is bad!')
-    'This is knackered!'
+    'This iz pants!'
 
 Requirements
 ------------
