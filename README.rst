@@ -10,8 +10,7 @@ Example::
 
     >>> from translator import translate
     >>> translate('This is bad!')
-    ['This', 'is', 'naff', '!']
-    >>>
+    'This is knackered!'
 
 Requirements
 ------------

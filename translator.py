@@ -1,9 +1,12 @@
-from itertools import chain, islice
+from itertools import chain
+import random
+import re
+
 from nltk.tokenize import wordpunct_tokenize
 from nltk.corpus import cmudict
 
-import random
-import re
+import manc
+
 
 phoneme_reprs = {
     "AA":   "o",    # 'o' as in 'odd'
@@ -50,14 +53,14 @@ phoneme_reprs = {
 
 phoneme_dict = cmudict.dict()
 
-def translate(text,dialect):
+def translate(text, dialect=manc):
     """Translate from plain English to given dialect"""
     tokens = tokenize(text)
-    translated = substitute(tokens,dialect)
-    return list(translated)
+    translated = substitute(tokens, dialect)
+    return untokenize(translated)
 
 
-def substitute(tokens,dialect):
+def substitute(tokens, dialect):
     """Generator producing translated words for given tokens.
     
     Algorithm:
@@ -122,3 +125,25 @@ def tokenize(text):
     lines = (line for line in text.split('\n'))
     tokens = (wordpunct_tokenize(line) + ['\n'] for line in lines)
     return list(chain.from_iterable(tokens))[:-1]
+
+
+def untokenize(tokens):
+    """Join a sequence of tokens into a single block of text.
+
+    An attempt is made to respect the location of whitespace in the
+    original text.
+
+    """
+
+    def spacer():
+        token = tokens.next()
+        yield token
+
+        last = token
+        for token in tokens:
+            if any(c.isalnum() for c in token) and not last.isspace():
+                yield ' '
+            yield token
+            last = token
+
+    return ''.join(list(spacer()))
