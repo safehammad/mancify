@@ -46,6 +46,9 @@ __keywords__ = [
 
 __requires__ = [
     'paramiko',
+    'clockwork',
+    'webob',
+    'wheezy.routing',
     ]
 
 __extra_requires__ = {
