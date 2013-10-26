@@ -85,6 +85,7 @@ class MancifyWsgiApp(object):
         # the server doesn't keep retrying but otherwise ignore it
         msg_id = req.params['msg_id']
         mobile = req.params['from']
+        sender = req.params.get('to')
         content = req.params['content']
         if msg_id in self.messages:
             raise exc.HTTPOk('Message already processed')
@@ -92,14 +93,14 @@ class MancifyWsgiApp(object):
         # Determine if this is a new session or not
         if mobile in self.sessions:
             if content == '^D' or content == 'logout':
-                self.ssh_close(mobile)
+                self.ssh_close(mobile, sender)
             else:
-                self.ssh_exec(mobile, content)
+                self.ssh_exec(mobile, content, sender)
         else:
-            self.ssh_open(mobile, content)
+            self.ssh_open(mobile, content, sender)
         raise exc.HTTPOk('Message processed')
 
-    def ssh_open(self, mobile, content):
+    def ssh_open(self, mobile, content, sender=None):
         try:
             hostname, username, password = content.split(',', 3)
         except ValueError:
@@ -117,18 +118,18 @@ class MancifyWsgiApp(object):
                 msg = str(e)
                 if len(msg) > 140:
                     msg = msg[:137] + '...'
-                self.mobile_send(mobile, msg)
+                self.mobile_send(mobile, msg, sender)
             else:
                 self.sessions[mobile] = (session, datetime.now())
-                self.mobile_send(mobile, 'Connected to %s' % hostname)
+                self.mobile_send(mobile, 'Connected to %s' % hostname, sender)
 
-    def ssh_close(self, mobile):
+    def ssh_close(self, mobile, sender=None):
         logging.info('Closing session for %s', mobile)
         session, timestamp = self.sessions.pop(mobile)
         session.close()
-        self.mobile_send(mobile, 'Ta very much!')
+        self.mobile_send(mobile, 'Ta very much!', sender)
 
-    def ssh_exec(self, mobile, content):
+    def ssh_exec(self, mobile, content, sender=None):
         logging.debug('Executing %s for %s', content, mobile)
         session, timestamp = self.sessions[mobile]
         stdin, stdout, stderr = session.exec_command(content, timeout=self.ssh_timeout)
@@ -142,14 +143,15 @@ class MancifyWsgiApp(object):
             msg = err
         else:
             msg = "There's nowt output!"
-        self.mobile_send(mobile, msg)
+        self.mobile_send(mobile, msg, sender)
 
-    def mobile_send(self, mobile, content):
+    def mobile_send(self, mobile, content, sender=None):
         logging.debug('Sending message to %s', mobile)
         while content:
             # Send up to 459 characters at a time (the maximum length of a
             # triple concatenated SMS message)
-            msg = clockwork.SMS(to=mobile, message=content[:SMS_MAX_LENGTH])
+            msg = clockwork.SMS(
+                to=mobile, message=content[:SMS_MAX_LENGTH], from_name=sender)
             response = self.sms_api.send(msg)
             if not response.success:
                 logging.error('%s %s', response.error_code, response.error_description)
