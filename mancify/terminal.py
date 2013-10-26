@@ -175,6 +175,7 @@ class MancifyConsoleApp(object):
         if ini_path:
             args = ['-c', ini_path]
         args = self.read_configuration(args)
+        args = self.parser.parse_args(args)
         self.configure_logging(args)
         return MancifyWsgiApp(**vars(args))
 
