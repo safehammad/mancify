@@ -111,7 +111,7 @@ class MancifyWsgiApp(object):
 
     def ssh_open(self, mobile, content, sender=None):
         try:
-            bits = content.split(',', 3)
+            bits = content.split(',')
             hostname, username, password = bits[:3]
             dlname = bits[3] if len(bits) > 3 else "manc"
         except ValueError:
