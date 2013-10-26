@@ -5,7 +5,7 @@ import re
 from nltk.tokenize import wordpunct_tokenize
 from nltk.corpus import cmudict
 
-import dialects.manc as manc
+import mancify.dialects.manc as manc
 
 phoneme_reprs = {
     "AA":   "o",    # 'o' as in 'odd'
@@ -61,7 +61,7 @@ def translate(text, dialect=manc):
 
 def substitute(tokens, dialect):
     """Generator producing translated words for given tokens.
-    
+
     Algorithm:
         1. Try direct word substitution
         2. If (1) fails, try phonetic substitution.
@@ -72,7 +72,7 @@ def substitute(tokens, dialect):
         token_lower = token.lower()
         if token_lower in dialect.ignores:
             yield token
-            continue            
+            continue
         substitution = replace_random(token_lower, dialect)
         if substitution == token_lower:
             substitution = alter_phonemes(token_lower, dialect)
@@ -81,16 +81,16 @@ def substitute(tokens, dialect):
 
 
 def alter_phonemes(word,dialect):
-    """Write out word phonetically, applying phoneme rules in the 
+    """Write out word phonetically, applying phoneme rules in the
         process"""
     try:
         phons = phoneme_dict[word][0]
     except KeyError:
         return word
-        
+
     phons = [re.sub("[0-9]","",p) for p in phons]
     phons = ["START"] + phons + ["END"]
-        
+
     for patterns, replacement in dialect.phoneme_rules:
         for pattern in patterns:
             for i in range(len(phons)):
@@ -98,9 +98,9 @@ def alter_phonemes(word,dialect):
                     "replacing"
                     phons = phons[:i] + replacement + phons[i+len(pattern):]
                     break
-       
+
     return "".join([phoneme_reprs[p] for p in phons[1:-1]])
-        
+
 
 def replace_random(word,dialect):
     """Replace given word with a random alternative from given dialect.
