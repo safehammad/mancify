@@ -30,7 +30,7 @@ __requires__ = [
     'clockwork<2.0dev',
     'webob<2.0dev',
     'wheezy.routing<1.0dev',
-    'nltk>=2.0.4',
+    'nltk==2.0.4',
     ]
 
 __extra_requires__ = {

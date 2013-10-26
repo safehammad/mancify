@@ -18,6 +18,14 @@ from wheezy.routing import PathRouter, url
 from webob import Request, Response, exc
 from clockwork import clockwork
 
+from . import translator
+from .dialects import manc
+from .dialects import normal
+
+DIALECTS = { 
+    "manc":     manc,
+    "normal":   normal,
+}
 
 # Maximum length of an SMS message (with triple concatenation, the maximum
 # permitted under GSM)
@@ -104,11 +112,15 @@ class MancifyWsgiApp(object):
 
     def ssh_open(self, mobile, content, sender=None):
         try:
-            hostname, username, password = content.split(',', 3)
+            bits = content.split(',',3)             
+            hostname, username, password = content[:3]
+            dlname = bits[3] if len(bits)>3 else "manc"
         except ValueError:
             self.mobile_send(mobile,
-                'Invalid connection request. Please send hostname,username,password')
+                'Invalid connection request. Please send hostname,username,password[,dialect]',
+                dialects.normal)
         else:
+            dialect = DIALECTS.get(dlname,dialects.manc)
             logging.info('Opening connection to %s for %s', hostname, username)
             try:
                 session = SSHClient()
@@ -120,20 +132,21 @@ class MancifyWsgiApp(object):
                 msg = str(e)
                 if len(msg) > 140:
                     msg = msg[:137] + '...'
-                self.mobile_send(mobile, msg, sender)
+                self.mobile_send(mobile, msg, dialect,sender)
             else:
-                self.sessions[mobile] = (session, datetime.now())
-                self.mobile_send(mobile, 'Connected to %s' % hostname, sender)
+                self.sessions[mobile] = (session, datetime.now(),dialect)
+                msg = 'Connected to %s' % hostname
+                self.mobile_send(mobile, msg, dialect,sender)
 
     def ssh_close(self, mobile, sender=None):
         logging.info('Closing session for %s', mobile)
-        session, timestamp = self.sessions.pop(mobile)
+        session, timestamp, dialect = self.sessions.pop(mobile)
         session.close()
-        self.mobile_send(mobile, 'Ta very much!', sender)
+        self.mobile_send(mobile, 'Ta very much!', dialect, sender)
 
     def ssh_exec(self, mobile, content, sender=None):
         logging.debug('Executing %s for %s', content, mobile)
-        session, timestamp = self.sessions[mobile]
+        session, timestamp, dialect = self.sessions[mobile]
         stdin, stdout, stderr = session.exec_command(content, timeout=self.exec_timeout)
         out = stdout.read()
         err = stderr.read()
@@ -144,12 +157,12 @@ class MancifyWsgiApp(object):
         elif err:
             msg = err
         else:
-            msg = "There's nowt output!"
-        self.mobile_send(mobile, msg, sender)
+            msg = "There's nothing to output!"
+        self.mobile_send(mobile, msg, dialect, sender)
 
-    def mobile_send(self, mobile, content, sender=None):
+    def mobile_send(self, mobile, content, dialect, sender=None):
         logging.debug('Sending message to %s', mobile)
-        for chunk in self.mobile_format(content):
+        for chunk in self.mobile_format(content, dialect):
             # Send up to 459 characters at a time (the maximum length of a
             # triple concatenated SMS message)
             msg = clockwork.SMS(to=mobile, message=chunk, from_name=sender)
@@ -157,10 +170,10 @@ class MancifyWsgiApp(object):
             if not response.success:
                 logging.error('%s %s', response.error_code, response.error_description)
 
-    def mobile_format(self, content):
+    def mobile_format(self, content, dialect):
         # Replace multiple consecutive spaces and line breaks with individual
         # spaces and line breaks (no sense wasting credits on them)
-        content = content.strip()
+        content = translator.translate(content.strip(), dialect)
         content = re.sub(' +', ' ', content)
         content = re.sub('\r\n', '\n', content)
         content = re.sub('\n+', '\n', content)
