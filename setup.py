@@ -22,46 +22,8 @@ try:
 except ImportError:
     pass
 
-__project__      = 'mancify'
-__version__      = '0.1'
-__author__       = 'Safe Hammad'
-__author_email__ = 'safe@sandacre.com'
-__url__          = None
-__platforms__    = ['ALL']
-
-__classifiers__ = [
-    'Development Status :: 3 - Alpha',
-    'Environment :: Console',
-    'Intended Audience :: System Administrators',
-    'License :: OSI Approved :: MIT License',
-    'Operating System :: POSIX :: Linux',
-    'Programming Language :: Python :: 2.7',
-    'Topic :: Internet',
-    ]
-
-__keywords__ = [
-    'hack',
-    'manchester',
-    ]
-
-__requires__ = [
-    'paramiko<2.0dev',
-    'clockwork<2.0dev',
-    'webob<2.0dev',
-    'wheezy.routing<1.0dev',
-    'nltk>=2.0.4',
-    ]
-
-__extra_requires__ = {
-    'doc': ['sphinx'],
-    }
-
-__entry_points__ = {
-    'console_scripts': [
-        'mancify = mancify.terminal:main',
-        ],
-    }
-
+# Grab meta-data from the application's package root
+import mancify as app
 
 # Add a py.test based "test" command
 class PyTest(TestCommand):
@@ -86,28 +48,28 @@ def main():
     import io
     with io.open(os.path.join(HERE, 'README.rst'), 'r') as readme:
         setup(
-            name                 = __project__,
-            version              = __version__,
-            description          = __doc__,
+            name                 = app.__project__,
+            version              = app.__version__,
+            description          = app.__doc__,
             long_description     = readme.read(),
-            classifiers          = __classifiers__,
-            author               = __author__,
-            author_email         = __author_email__,
-            #url                  = __url__,
+            classifiers          = app.__classifiers__,
+            author               = app.__author__,
+            author_email         = app.__author_email__,
+            #url                  = app.__url__,
             license              = [
                 c.rsplit('::', 1)[1].strip()
-                for c in __classifiers__
+                for c in app.__classifiers__
                 if c.startswith('License ::')
                 ][0],
-            keywords             = ' '.join(__keywords__),
+            keywords             = ' '.join(app.__keywords__),
             packages             = ['mancify'],
             package_data         = {},
             include_package_data = True,
-            platforms            = __platforms__,
-            install_requires     = __requires__,
-            extras_require       = __extra_requires__,
+            platforms            = app.__platforms__,
+            install_requires     = app.__requires__,
+            extras_require       = app.__extra_requires__,
             zip_safe             = True,
-            entry_points         = __entry_points__,
+            entry_points         = app.__entry_points__,
             tests_require        = ['pytest-cov', 'pytest', 'mock'],
             cmdclass             = {'test': PyTest},
             )
