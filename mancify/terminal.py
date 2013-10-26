@@ -93,6 +93,10 @@ class MancifyConsoleApp(object):
             default=300, metavar='SECS', type=int,
             help='the timeout between SSH commands')
         self.parser.add_argument(
+            '--output-limit', dest='output_limit', action='store',
+            default=1024, metavar='BYTES', type=int,
+            help='the maximum size of output to permit per command')
+        self.parser.add_argument(
             '--clockwork-api-key', dest='clockwork_api_key', action='store',
             metavar='KEY', default=None,
             help='your clockwork API key')

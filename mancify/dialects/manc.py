@@ -140,9 +140,9 @@ structure_rules = [
 
 
 if __name__ == "__main__":
-	import re,random,sys
-	text = sys.argv[1]
-	for patts,repls in words:
-		for patt in patts:
-			text = re.sub(r'\b'+patt+r'\b',lambda m: random.choice(repls),text)
-	print text
+    import re,random,sys
+    text = sys.argv[1]
+    for patts,repls in words:
+        for patt in patts:
+            text = re.sub(r'\b'+patt+r'\b',lambda m: random.choice(repls),text)
+    print text
