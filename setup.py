@@ -47,7 +47,7 @@ __keywords__ = [
 __requires__ = [
     'paramiko<2.0dev',
     'clockwork<2.0dev',
-    'webob<1.0dev',
+    'webob<2.0dev',
     'wheezy.routing<1.0dev',
     'nltk>=2.0.4',
     ]
