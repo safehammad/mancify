@@ -45,10 +45,11 @@ __keywords__ = [
     ]
 
 __requires__ = [
-    'paramiko',
-    'clockwork',
-    'webob',
-    'wheezy.routing',
+    'paramiko<2.0dev',
+    'clockwork<2.0dev',
+    'webob<1.0dev',
+    'wheezy.routing<1.0dev',
+    'nltk>=2.0.4',
     ]
 
 __extra_requires__ = {
