@@ -136,7 +136,7 @@ class MancifyConsoleApp(object):
             self.parser.error('unable to read %s', conf_args.confg)
         if conf_read:
             section = 'mancify'
-            if not section in config:
+            if not section in config.sections():
                 self.parser.error(
                     'unable to locate [%s] section in configuration' % section)
             self.parser.set_defaults(**{
@@ -153,7 +153,7 @@ class MancifyConsoleApp(object):
                     'session_timeout',
                     'clockwork_api_key',
                     )
-                if key in config[section]
+                if config.has_option(section, key)
                 })
         return args
 
