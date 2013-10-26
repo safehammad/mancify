@@ -1,13 +1,33 @@
-from itertools import chain
+from itertools import chain, islice
 
 from nltk.tokenize import wordpunct_tokenize
+
+import manc
 
 
 def translate(text):
     """Translate from plain English to Manc."""
     tokens = tokenize(text)
-    # TODO translate tokens into Manc :)
-    return tokens
+    translated = substitute(tokens)
+    return list(translated)
+
+
+def substitute(tokens):
+    """Generator producing Manc words for given tokens.
+    
+    Algorithm:
+        1. Try direct word substitution
+        2. If (1) fails, try phonetic substitution.
+        3. If (2) fails, it's a symbol! Return as is...
+
+    """
+    for token in tokens:
+        substitution = manc.replace_random(token)
+        if substitution != token:
+            yield substitution
+        else:
+            # TODO: alter pronunciation
+            yield token
 
 
 def tokenize(text):
