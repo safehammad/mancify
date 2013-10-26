@@ -1,3 +1,6 @@
+import random
+
+
 words = [
 	(("acceptable","ace","awesome","brilliant","excellent","fantastic","good",
 			"great","likable","lovely","super","smashing","nice","pleasing",
@@ -15,7 +18,7 @@ words = [
 		("knacker",)),
 	(("bad","poor","rubbish","broken","errored","damaged","atrocious","awful",
 			"cheap","crummy","dreadful","lousy","rough","sad","unacceptable",
-			"garbage","inferior","abominable","amiss","),
+			"garbage","inferior","abominable","amiss",),
 		("naff","shit","knackered",)),
 	(("very","exceedingly","mostly","sheer",),
 		("well","bare","pure",)),
@@ -32,10 +35,25 @@ words = [
 ]
 
 
+def replace_random(word):
+    """Replace given word with a random Mancunian alternative.
+
+    If a replacement word does not exist, return the original word.
+
+    """
+    for patterns, replacements in words:
+        for pattern in patterns:
+            if word == pattern:
+                return random.choice(replacements)
+
+    # No replacement found
+    return word
+
+
 if __name__ == "__main__":
-	import re,random,sys
+	import re, sys
 	text = sys.argv[1]
-	for patts,repls in words:
+	for patts, repls in words:
 		for patt in patts:
 			text = re.sub(r'\b'+patt+r'\b',lambda m: random.choice(repls),text)
 	print text
