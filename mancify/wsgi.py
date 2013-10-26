@@ -60,8 +60,8 @@ class MancifyWsgiApp(object):
 
     def do_index(self, req):
         resp = Response()
-        resp.content_type = 'text/html'
-        resp.content_encoding = 'utf-8'
+        resp.content_type = b'text/html'
+        resp.content_encoding = b'utf-8'
         resp.text = """\
 <html>
 <head><title>Mancify</title></head>
