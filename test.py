@@ -24,7 +24,14 @@ class TestMancify(unittest.TestCase):
         self.assertItemsEqual(expected, actual)
 
     def testSpacer(self):
-        # Check whitespace is maintine
+        # Check whitespace is maintained
         text = 'This is a very, very good test!\nLine two. And again!'
         tokens = translator.tokenize(text)
         self.assertEqual(text, translator.untokenize(chain(tokens)))
+
+    def testSpacerNonAlnum(self):
+        # Check whitespace is maintained with non alphanumeric in token
+        tokens = ['This', 'is', 'a', 'pseudo-test']
+        self.assertEqual(' '.join(tokens), translator.untokenize(chain(tokens)))
+
+
