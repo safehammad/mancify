@@ -1,4 +1,4 @@
-words = [
+word_rules = [
     (("acceptable","ace","awesome","brilliant","excellent","fantastic","good",
             "great","likable","lovely","super","smashing","nice","pleasing",
             "rad","superior","worthy","admirable","agreeable","commendable",
@@ -71,7 +71,7 @@ words = [
     (("idiot","moron","fool","buffoon","clown","jerk","nerd","nitwit","stooge",
             "sucker","twit","clod","cretin","dolt","dope","dunce","oaf","twerp",
             "imbecile","ignoramus","loon","ninny","numskull",),
-        ("scrote","muppet",)),
+        ("scrote","muppet","knobber",)),
     (("police","law","cop","cops","policeman","policewoman","constable","officer",
             "detective","bobby","copper",),
         ("dibble",)),
@@ -81,20 +81,11 @@ words = [
         ("gaff",)),
 ]
 
+phoneme_rules = [
+    ((['START','HH'],),
+        ['START']),
+]
 
-def replace_random(word):
-    """Replace given word with a random Mancunian alternative.
-
-    If a replacement word does not exist, return the original word.
-
-    """
-    for patterns, replacements in words:
-        for pattern in patterns:
-            if word == pattern:
-                return random.choice(replacements)
-
-    # No replacement found
-    return word
 
 
 if __name__ == "__main__":
