@@ -17,6 +17,14 @@ from wheezy.routing import PathRouter, url
 from webob import Request, Response, exc
 from clockwork import clockwork
 
+import translator
+import dialects.manc
+import dialects.normal
+
+DIALECTS = { 
+    "manc":     dialects.manc,
+    "normal":   dialects.normal,
+}
 
 # Maximum length of an SMS message (with triple concatenation, the maximum
 # permitted under GSM)
@@ -102,11 +110,14 @@ class MancifyWsgiApp(object):
 
     def ssh_open(self, mobile, content, sender=None):
         try:
-            hostname, username, password = content.split(',', 3)
+            bits = content.split(',',3)             
+            hostname, username, password = content[:3]
+            dlname = bits[3] if len(bits)>3 else "manc"
         except ValueError:
             self.mobile_send(mobile,
-                'Invalid connection request. Please send hostname,username,password')
+                'Invalid connection request. Please send hostname,username,password[,dialect]')
         else:
+            dialect = DIALECTS.get(dlname,dialects.manc)
             logging.info('Opening connection to %s for %s', hostname, username)
             try:
                 session = SSHClient()
@@ -120,7 +131,7 @@ class MancifyWsgiApp(object):
                     msg = msg[:137] + '...'
                 self.mobile_send(mobile, msg, sender)
             else:
-                self.sessions[mobile] = (session, datetime.now())
+                self.sessions[mobile] = (session, datetime.now(),dialect)
                 self.mobile_send(mobile, 'Connected to %s' % hostname, sender)
 
     def ssh_close(self, mobile, sender=None):
@@ -131,7 +142,7 @@ class MancifyWsgiApp(object):
 
     def ssh_exec(self, mobile, content, sender=None):
         logging.debug('Executing %s for %s', content, mobile)
-        session, timestamp = self.sessions[mobile]
+        session, timestamp, dialect = self.sessions[mobile]
         stdin, stdout, stderr = session.exec_command(content, timeout=self.exec_timeout)
         out = stdout.read()
         err = stderr.read()
@@ -142,7 +153,8 @@ class MancifyWsgiApp(object):
         elif err:
             msg = err
         else:
-            msg = "There's nowt output!"
+            msg = "There's nothing to output!"
+        msg = translator.translate(msg,dialect)
         self.mobile_send(mobile, msg, sender)
 
     def mobile_send(self, mobile, content, sender=None):
