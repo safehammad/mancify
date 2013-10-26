@@ -45,7 +45,11 @@ __keywords__ = [
     ]
 
 __requires__ = [
-    'paramiko',
+    'paramiko<2.0dev',
+    'clockwork<2.0dev',
+    'webob<2.0dev',
+    'wheezy.routing<1.0dev',
+    'nltk>=2.0.4',
     ]
 
 __extra_requires__ = {
@@ -53,6 +57,9 @@ __extra_requires__ = {
     }
 
 __entry_points__ = {
+    'console_scripts': [
+        'mancify = mancify.terminal:main',
+        ],
     }
 
 
