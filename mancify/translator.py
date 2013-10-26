@@ -5,8 +5,7 @@ import re
 from nltk.tokenize import wordpunct_tokenize
 from nltk.corpus import cmudict
 
-import manc
-
+import dialects.manc as manc
 
 phoneme_reprs = {
     "AA":   "o",    # 'o' as in 'odd'
@@ -104,7 +103,7 @@ def alter_phonemes(word,dialect):
         
 
 def replace_random(word,dialect):
-    """Replace given word with a random Mancunian alternative.
+    """Replace given word with a random alternative from given dialect.
 
     If a replacement word does not exist, return the original word.
 
