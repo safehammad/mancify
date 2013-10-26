@@ -1,4 +1,12 @@
+ignores = [ "i","a" ]
+
 word_rules = [
+    (("and",),
+        ("n'",)),
+    (("of",),
+        ("ov",)),
+    (("her",),
+        ("'er",)),
     (("acceptable","ace","awesome","brilliant","excellent","fantastic","good",
             "great","likable","lovely","super","smashing","nice","pleasing",
             "rad","superior","worthy","admirable","agreeable","commendable",

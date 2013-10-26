@@ -19,13 +19,13 @@ phoneme_reprs = {
     "CH":   'ch',   # 'ch' as in 'cheese'
     "D":    'd',    # 'd' as in 'dog'
     "DH":   'th',   # 'th' as in 'thee'
-    "EH":   'eh',   # 'e' as in 'Ed'
+    "EH":   'e',    # 'e' as in 'Ed'
     "ER":   'ur',   # 'ur' as in 'hurt'
     "EY":   'ey',   # 'a' as in 'ate'
     "F":    'f',    # 'f' as in 'fee'
     "G":    'g',    # 'g' as in 'green'
     "HH":   'h',    # 'h' as in 'house'
-    "IH":   'ih',   # 'i' as in 'it'
+    "IH":   'i',    # 'i' as in 'it'
     "IY":   'ee',   # 'ea' as in 'eat'
     "JH":   'j',    # 'g' as in 'gee'
     "K":    'k',    # 'k' as in 'key'
@@ -41,7 +41,7 @@ phoneme_reprs = {
     "SH":   'sh',   # 'sh' as in 'she'
     "T":    't',    # 't' as in 'tea'
     "TH":   'th',   # 'th' as in 'theta'
-    "UH":   'uh',   # 'oo' as in 'hood'
+    "UH":   'u',    # 'oo' as in 'hood'
     "UW":   'oo',   # 'wo' as in 'two'
     "V":    'v',    # 'v' as in 'vee'
     "W":    'w',    # 'w' as in 'we'
@@ -71,6 +71,9 @@ def substitute(tokens, dialect):
     """
     for token in tokens:
         token_lower = token.lower()
+        if token_lower in dialect.ignores:
+            yield token
+            continue            
         substitution = replace_random(token_lower, dialect)
         if substitution == token_lower:
             substitution = alter_phonemes(token_lower, dialect)
