@@ -115,7 +115,8 @@ class MancifyWsgiApp(object):
             dlname = bits[3] if len(bits)>3 else "manc"
         except ValueError:
             self.mobile_send(mobile,
-                'Invalid connection request. Please send hostname,username,password[,dialect]')
+                'Invalid connection request. Please send hostname,username,password[,dialect]',
+                dialects.normal)
         else:
             dialect = DIALECTS.get(dlname,dialects.manc)
             logging.info('Opening connection to %s for %s', hostname, username)
@@ -129,16 +130,17 @@ class MancifyWsgiApp(object):
                 msg = str(e)
                 if len(msg) > 140:
                     msg = msg[:137] + '...'
-                self.mobile_send(mobile, msg, sender)
+                self.mobile_send(mobile, msg, dialect,sender)
             else:
                 self.sessions[mobile] = (session, datetime.now(),dialect)
-                self.mobile_send(mobile, 'Connected to %s' % hostname, sender)
+                msg = 'Connected to %s' % hostname
+                self.mobile_send(mobile, msg, dialect,sender)
 
     def ssh_close(self, mobile, sender=None):
         logging.info('Closing session for %s', mobile)
-        session, timestamp = self.sessions.pop(mobile)
+        session, timestamp, dialect = self.sessions.pop(mobile)
         session.close()
-        self.mobile_send(mobile, 'Ta very much!', sender)
+        self.mobile_send(mobile, 'Ta very much!', dialect, sender)
 
     def ssh_exec(self, mobile, content, sender=None):
         logging.debug('Executing %s for %s', content, mobile)
@@ -154,11 +156,11 @@ class MancifyWsgiApp(object):
             msg = err
         else:
             msg = "There's nothing to output!"
-        msg = translator.translate(msg,dialect)
-        self.mobile_send(mobile, msg, sender)
+        self.mobile_send(mobile, msg, dialect, sender)
 
-    def mobile_send(self, mobile, content, sender=None):
+    def mobile_send(self, mobile, content, dialect, sender=None):
         logging.debug('Sending message to %s', mobile)
+        content = translator.translate(content,dialect)
         while content:
             # Send up to 459 characters at a time (the maximum length of a
             # triple concatenated SMS message)
