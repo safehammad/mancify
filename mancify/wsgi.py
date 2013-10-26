@@ -111,14 +111,14 @@ class MancifyWsgiApp(object):
 
     def ssh_open(self, mobile, content, sender=None):
         try:
-            bits = content.split(',')
+            bits = content.split(',', 3)
             hostname, username, password = bits[:3]
             dlname = bits[3] if len(bits) > 3 else "manc"
         except ValueError:
             self.mobile_send(mobile,
                 'Invalid connection request. Please send '
                 'hostname,username,password[,dialect]',
-                normal)
+                normal, sender)
         else:
             dialect = DIALECTS.get(dlname, manc)
             logging.info('Opening connection to %s for %s', hostname, username)
@@ -132,7 +132,7 @@ class MancifyWsgiApp(object):
                 msg = str(e)
                 if len(msg) > 140:
                     msg = msg[:137] + '...'
-                self.mobile_send(mobile, msg, dialect,sender)
+                self.mobile_send(mobile, msg, dialect, sender)
             else:
                 self.sessions[mobile] = (session, datetime.now(),dialect)
                 msg = 'Connected to %s' % hostname
