@@ -118,9 +118,9 @@ class MancifyWsgiApp(object):
             self.mobile_send(mobile,
                 'Invalid connection request. Please send '
                 'hostname,username,password[,dialect]',
-                dialects.normal)
+                normal)
         else:
-            dialect = DIALECTS.get(dlname,dialects.manc)
+            dialect = DIALECTS.get(dlname, manc)
             logging.info('Opening connection to %s for %s', hostname, username)
             try:
                 session = SSHClient()
