@@ -26,6 +26,7 @@ __keywords__ = [
     ]
 
 __requires__ = [
+    'numpy<2.0dev',
     'paramiko<2.0dev',
     'clockwork<2.0dev',
     'webob<2.0dev',
