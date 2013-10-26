@@ -132,7 +132,7 @@ class MancifyWsgiApp(object):
     def ssh_exec(self, mobile, content, sender=None):
         logging.debug('Executing %s for %s', content, mobile)
         session, timestamp = self.sessions[mobile]
-        stdin, stdout, stderr = session.exec_command(content, timeout=self.ssh_timeout)
+        stdin, stdout, stderr = session.exec_command(content, timeout=self.exec_timeout)
         out = stdout.read()
         err = stderr.read()
         if out and err:
