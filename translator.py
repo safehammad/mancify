@@ -8,10 +8,10 @@ import re
 phoneme_reprs = {
     "AA":   "o",    # 'o' as in 'odd'
     "AE":   "a",    # 'a' as in 'at'
-    "AH":   "u",    # 'u' as in 'hut'
+    "AH":   "uh",   # 'u' as in 'hut'
     "AO":   "oar",  # 'augh' as in 'caught'
     "AW":   "ow",   # 'ow' as in 'cow'
-    "AY":   'ai',   # 'i' as in 'hide'
+    "AY":   'iy',   # 'i' as in 'hide'
     "B":    'b',    # 'b' as in 'bee'
     "CH":   'ch',   # 'ch' as in 'cheese'
     "D":    'd',    # 'd' as in 'dog'
@@ -45,6 +45,7 @@ phoneme_reprs = {
     "Y":    'y',    # 'y' as in 'yeild'
     "Z":    'z',    # 'z' as in 'zee'
     "ZH":   'z',    # 'z' as in 'seizure'
+    "'":    "'",    # glottal stop
 }
 
 phoneme_dict = cmudict.dict()
