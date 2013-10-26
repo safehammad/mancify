@@ -171,3 +171,9 @@ class MancifyConsoleApp(object):
         httpd.serve_forever()
         return 0
 
+
+main = MancifyConsoleApp()
+
+if __name__ == '__main__':
+    sys.exit(main())
+
