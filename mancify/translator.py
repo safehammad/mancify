@@ -2,6 +2,7 @@ from itertools import chain
 import random
 import re
 
+import nltk
 from nltk.tokenize import wordpunct_tokenize
 from nltk.corpus import cmudict
 
@@ -55,8 +56,42 @@ phoneme_dict = cmudict.dict()
 def translate(text, dialect=manc):
     """Translate from plain English to given dialect"""
     tokens = tokenize(text)
-    translated = substitute(tokens, dialect)
+    restructured = restructure(tokens,dialect)
+    translated = substitute(restructured, dialect)
     return untokenize(translated)
+
+
+def restructure(tokens, dialect):
+    """Rearranges the structure of the input based on the 
+        given dialect"""
+    tagged = nltk.pos_tag(tokens)
+    for patterns,replacements,chance in dialect.structure_rules:
+        for pattern in patterns:
+            for i in range(len(tagged)):
+                if not pos_tag_match(tagged,i,pattern):
+                    continue
+                if random.random() >= chance: 
+                    continue
+                replacement = random.choice(replacements)
+                new = tagged[:i]
+                for r in replacement:
+                    if type(r)==int: 
+                        new += [tagged[i+r]]
+                    else:
+                        new += [(r,"?")]
+                new += tagged[i+len(pattern):]
+                tagged = new
+                break
+    return iter([word for word,tag in tagged])
+                    
+    
+def pos_tag_match(tagged,i,pattern):
+    for j,ptag in enumerate(pattern):
+        if i+j >= len(tagged): 
+            return False
+        if not bool(re.match("^"+ptag.replace("*",".*")+"$",tagged[i+j][1])): 
+            return False
+    return True
 
 
 def substitute(tokens, dialect):

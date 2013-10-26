@@ -4,3 +4,4 @@ class AllSet(object):
 ignores = AllSet()
 word_rules = []
 phoneme_rules = []
+structure_rules = []

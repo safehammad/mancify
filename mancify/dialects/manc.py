@@ -7,6 +7,8 @@ word_rules = [
         ("ov",)),
     (("her",),
         ("'er",)),
+    (("my",),
+        ("me",)),
     (("acceptable","ace","awesome","brilliant","excellent","fantastic","good",
             "great","likable","lovely","super","smashing","nice","pleasing",
             "rad","superior","worthy","admirable","agreeable","commendable",
@@ -16,7 +18,7 @@ word_rules = [
             "wonderful","fine","perfect","special","exciting","amazing","succeeded",
             "worked","successful"),
         ("buzzin'","top","mint","boss","sound","fit","sweet","madferit","safe","raz",
-            "bob on","bangin'","peach","bazzin'","kewl")),
+            "bob on","bangin'","peach","bazzin'","kewl","quality")),
     (("anything",),
         ("owt",)),
     (("nothing","none","zero","blank","null","void","nought",),
@@ -33,7 +35,8 @@ word_rules = [
             "erroneous","faulty","incorrect","inadequate","substandard",
             "unsatisfactory","dysfunctional","malfunctioning","corrupt","failed",),
         ("naff","shit","knackered","buggered","pants","pear-shaped","tits up",
-            "ragged","devilled","out of order","biz","kippered","bobbins")),
+            "ragged","devilled","out of order","bang out of order","biz","kippered",
+            "bobbins")),
     (("error","mistake","problem",),
         ("cock up","balls up")),
     (("very","exceedingly","mostly","sheer","exceptionally","genuinely",
@@ -127,6 +130,12 @@ phoneme_rules = [
         ["N","'","END"]),
     ((["T","UW","END"],),
         ["T","AH","END"]),
+]
+
+structure_rules = [
+    ((["JJ*","NN*"],),
+        (["chuffin'",0,1],),
+        0.1),
 ]
 
 
