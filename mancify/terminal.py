@@ -170,6 +170,14 @@ class MancifyConsoleApp(object):
         else:
             logging.getLogger().setLevel(logging.INFO)
 
+    def get_app(self, ini_path=None):
+        args = []
+        if ini_path:
+            args = ['-c', ini_path]
+        args = self.read_configuration(args)
+        self.configure_logging(args)
+        return MancifyWsgiApp(**vars(args))
+
     def main(self, args):
         app = MancifyWsgiApp(**vars(args))
         httpd = make_server(args.listen[0], args.listen[1], app)
