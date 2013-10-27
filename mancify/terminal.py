@@ -161,6 +161,7 @@ class MancifyCursesApp(BaseConsoleApp):
         super(MancifyCursesApp, self).__init__()
 
     def main(self, args):
+        translate('')
         curses.wrapper(self.event_loop)
 
     def event_loop(self, screen):
@@ -176,7 +177,7 @@ class MancifyCursesApp(BaseConsoleApp):
             in_box.do_command(c)
             pos = in_win.getyx()
             old_content = content
-            new_content = [(word, None) for word in re.split(r'(\s+)', in_box.gather())]
+            new_content = [(word, None) for word in re.split(r'(\s+)', in_box.gather().replace('\n', ' '))]
             content = []
             for (old_word, new_word) in izip_longest(old_content, new_content):
                 if new_word is None:
@@ -190,6 +191,7 @@ class MancifyCursesApp(BaseConsoleApp):
                         content.append((new_word[0], translate(new_word[0])))
                 else:
                     content.append(old_word)
+            out_win.clear()
             out_win.addstr(0, 0, ''.join(t for (w, t) in content))
             in_win.move(*pos)
             out_win.refresh()
