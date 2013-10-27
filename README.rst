@@ -9,38 +9,36 @@ Don't have internet? Need to SSH into your server? Have your phone handy? Proud 
 Setup
 -----
 
-* Sign up for an SMS package with Clockwork_ including an inbound mobile number. You'll be given an API Key.
+* Sign up for an SMS package with Clockwork_ including an inbound SMS number. You'll be given an API Key.
 
-* Place the API Key in `~/.mancify.ini` as follows::
+* Place the API Key in ``~/.mancify.ini`` as follows::
 
     [mancify]
     clockwork_api_key=abcde12345
 
-* Set up a server to serve the WSGI file in scripts/mancify.wsgi on port 80. Look `here <http://wsgi.readthedocs.org/>` for information on how to do this on your server. Make a note of the URL to which you have bound the WSGI file.
+* Set up a server to serve the WSGI file in ``scripts/mancify.wsgi`` on port 80. Browse http://wsgi.readthedocs.org/ for information on how to do this on your server. Make a note of the URL to which you have bound the WSGI file.
 
-* Via the Clockwork_ website, point your inbound SMS number as a GET request to the URL to which you bound the WSGI file with '/sms' appended to it. For example, if you bound the WSGI file to http://www.myserver.com/mancify, then point the inbound SMS number to http://www.myserver.com/mancify/sms.
+* Via the Clockwork_ website, configure your inbound SMS number to perform a GET request to the URL to which you bound the WSGI file with "/sms" appended to it. For example, if you bound the WSGI file to http://www.myserver.com/mancify, then point the inbound SMS number to http://www.myserver.com/mancify/sms.
 
 Give it a go!
 -------------
-Now you're all set to give it a go!
-
-Connect to an SSH server by texting the following to your inbound number::
+Connect to an SSH server by texting the following to your inbound SMS number::
 
     ssh username@hostname password [dialect]
 
-Where dialect is optional and can be "manc" (default) or "normal".
+Where dialect is optional and can be "manc", the Mancunian dialect (default), or "normal".
 
 Now that you're connected, try out a command! Try texting some of the following (assuming your server recognises these commands):
 
-* ls
+* ``ls``
 
-* echo This is my house on the beach!
+* ``echo This is my house on the beach!``
 
-* fortune
+* ``fortune``
 
 Run the test server
 -------------------
-If you'd like to give this a go without having to set up a server on the internet, you can try this locally. You'll be able to receive text messages but you won't be able to send them (instead, you'll simulate sending a text message via your web browser).
+If you'd like to try this without having to set up a server on the internet, you can run a server locally. You'll be able to receive text messages but you won't be able to send them (instead you can simulate sending a text message via your web browser).
 
 Run the following::
 
@@ -48,21 +46,21 @@ Run the following::
 
 Now simulate sending a text message by visiting the following URL in your web browser::
 
-    http://localhost:8000/ssh?to=<clockwork_inbound_no>&from=<your_mobile_no>&content=<text_message>&msg_id=AB_1
+    http://localhost:8000/ssh?to=<inbound_sms_no>&from=<your_mobile_no>&content=<text_message>&msg_id=AB_1
 
-Note that the message id can be any string but must be unique with each invocation.
+Note that "msg_id" represents the message id which can be any string but must be unique with each invocation.
 
-So to connect to your server, use the following::
+To open an SSH connection to your server, use the following::
 
-    http://localhost:8000/ssh?to=<clockwork_inbound_no>&from=<your_mobile_no>&content=hostname,username,password,dialect&msg_id=AB_1
+    http://localhost:8000/ssh?to=<inbound_sms_no>&from=<your_mobile_no>&content=ssh username@hostname password dialect&msg_id=AB_1
 
-And to run the "ls" command, use the following::
+And run the "ls" command with the following URL::
 
-    http://localhost:8000/ssh?to=<clockwork_inbound_no>&from=<your_mobile_no>&content=ls&msg_id=AB_1
+    http://localhost:8000/ssh?to=<inbound_sms_no>&from=<your_mobile_no>&content=ls&msg_id=AB_2
 
 Try the translator
 ------------------
-You might have noticed that by setting the dialect to "manc", you get pure Mancuian output! You can try out the translator on its own.
+You might have noticed that by setting the dialect to "manc" you get pure Mancuian output! You can try out the translator on its own.
 
 For example::
 
@@ -80,6 +78,5 @@ Testing
 To test in Python 2.7+::
 
     python -m unittest discover
-
 
 .. _Clockwork: http://www.clockworksms.com/
