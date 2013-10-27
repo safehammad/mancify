@@ -112,7 +112,7 @@ def substitute(tokens, dialect):
         if substitution == token_lower:
             substitution = alter_phonemes(token_lower, dialect)
 
-        yield substitution if not token.istitle() else substitution.title()
+        yield match_case(substitution, token)
 
 
 def alter_phonemes(word,dialect):
@@ -185,3 +185,16 @@ def untokenize(tokens):
             last = token
 
     return ''.join(list(spacer()))
+
+
+def match_case(text, match_text):
+    """Return text capitalised to match match_text."""
+    word_count = len(match_text.split())
+    if match_text.istitle() and word_count == 1:
+        return text.capitalize()
+    elif match_text.istitle():
+        return text.title()
+    elif match_text[0].isupper():
+        return text.capitalize()
+    else:
+        return text

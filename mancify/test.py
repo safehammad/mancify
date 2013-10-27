@@ -1,8 +1,8 @@
 import unittest
 from itertools import chain
 
-import translator
-import manc
+from . import translator
+from .dialects import manc
 
 
 class TestMancify(unittest.TestCase):
@@ -13,14 +13,16 @@ class TestMancify(unittest.TestCase):
         self.assertItemsEqual(expected, actual)
 
     def testTranslateWord(self):
-        replacements = ['naff', 'shit', 'knackered', 'buggered', 'pants', 'pear-shaped', 'minging']
+        replacements = ["naff","shit","knackered","buggered","pants","pear-shaped","tits up",
+                        "ragged","devilled","out of order","bang out of order","biz","kippered",
+                        "bobbins"]
         self.assertIn(translator.translate('bad'), replacements)
         self.assertIn(translator.translate('poor'), replacements)
 
     def testTranslate(self):
         # Includes test for maintaining capitalisation
-        text = 'A line. A& line with^ Symbols.\nThe next Line.\nAnother line.'
-        expected = 'U lain. U& lain wihth^ Sihmbulz.\nThu nehkst Lain.\nUnuthur lain.'
+        text = 'A line. A& line with^ Symbols.\nAnother line.'
+        expected = "A liyn. A& liyn with^ Simbuhlz.\nUhnuhtho' liyn."
         actual = translator.translate(text)
         self.assertEqual(expected, actual)
 
@@ -35,4 +37,8 @@ class TestMancify(unittest.TestCase):
         tokens = ['This', 'is', 'a', 'pseudo-test']
         self.assertEqual(' '.join(tokens), translator.untokenize(chain(tokens)))
 
-
+    def testMatchCase(self):
+        self.assertEqual('how do', translator.match_case('how do', 'sample'))
+        self.assertEqual('How do', translator.match_case('how do', 'Sample'))
+        self.assertEqual('How do', translator.match_case('how do', 'Sample text'))
+        self.assertEqual('How Do', translator.match_case('how do', 'Sample Text'))
