@@ -42,7 +42,7 @@ word_rules = [
     (("error","mistake","problem",),
         ("cock up","balls up")),
     (("very","exceedingly","mostly","sheer","exceptionally","genuinely",
-            "especially",),
+            "especially","really"),
         ("well","bare","pure","dead","proper",)),
     (("numerous","many","all","most",),
         ("bare","pure",)),
