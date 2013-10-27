@@ -5,11 +5,11 @@ from __future__ import (
     print_function,
     )
 
+
 # Make Py2's str type like Py3's
 str = type('')
 
-
-ignores = [ "i","a" ]
+ignores = [ "i","a","be","will" ]
 
 word_rules = [
     (("and",),
@@ -22,6 +22,12 @@ word_rules = [
         ("me",)),
     (("what",),
         ("wot",)),
+    (("are",),
+        ("aar",)),
+    (("with",),
+        ("wi'",)),
+    (("these",),
+        ("deez",)),
     (("acceptable","ace","awesome","brilliant","excellent","fantastic","good",
             "great","likable","lovely","super","smashing","nice","pleasing",
             "rad","superior","worthy","admirable","agreeable","commendable",
