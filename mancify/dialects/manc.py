@@ -8,7 +8,6 @@ from __future__ import (
 # Make Py2's str type like Py3's
 str = type('')
 
-
 structure_rules = [
     ((["JJ*","NN*"],),
         (["chuffing",0,1],),
@@ -24,7 +23,7 @@ structure_rules = [
         0.1),
 ]
 
-ignores = [ "i","a" ]
+ignores = [ "i","a","be","will" ]
 
 word_rules = [
     (("and",),
