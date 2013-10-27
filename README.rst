@@ -60,6 +60,13 @@ Now that you're connected, try out a command! Try texting some of the following
 
 * ``fortune``
 
+Bear in mind that this isn't like a normal SSH session. There's no
+pseudo-terminal so full-screen applications like vim won't function.
+Furthermore, because there's no pseudo-terminal there's no persistent shell
+attached to the session so things that rely on shell state (like the current
+directory) won't work as expected (try changing directory with ``cd`` and
+you'll find you stay put).
+
 
 Testing the server
 ------------------
