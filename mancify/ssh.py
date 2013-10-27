@@ -16,7 +16,7 @@ from datetime import datetime
 from paramiko import SSHClient, SSHException, AutoAddPolicy
 
 from mancify import translator
-from mancify.dialects import manc, normal
+from mancify.dialects import manc, normal, pikachu
 
 
 class MancifySSHSession(object):
@@ -24,6 +24,7 @@ class MancifySSHSession(object):
     dialects = {
         'manc':   manc,
         'normal': normal,
+        'pikachu': pikachu,
     }
 
     def __init__(

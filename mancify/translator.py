@@ -175,9 +175,8 @@ def replace_random(word,dialect):
 
     """
     for patterns, replacements in dialect.word_rules:
-        for pattern in patterns:
-            if word == pattern:
-                return random.choice(replacements)
+        if word in patterns:
+            return random.choice(replacements)
 
     # No replacement found
     return word
