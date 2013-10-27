@@ -1,3 +1,13 @@
+from __future__ import (
+    unicode_literals,
+    absolute_import,
+    division,
+    print_function,
+    )
+
+# Make Py2's str type like Py3's
+str = type('')
+
 from itertools import chain
 import random
 import re
@@ -7,6 +17,7 @@ from nltk.tokenize import wordpunct_tokenize
 from nltk.corpus import cmudict
 
 from .dialects import manc
+
 
 phoneme_reprs = {
     "AA":   "o",    # 'o' as in 'odd'
@@ -49,9 +60,10 @@ phoneme_reprs = {
     "Z":    'z',    # 'z' as in 'zee'
     "ZH":   'z',    # 'z' as in 'seizure'
     "'":    "'",    # glottal stop
-}
+    }
 
 phoneme_dict = cmudict.dict()
+
 
 def translate(text, dialect=manc):
     """Translate from plain English to given dialect"""
@@ -62,7 +74,7 @@ def translate(text, dialect=manc):
 
 
 def restructure(tokens, dialect):
-    """Rearranges the structure of the input based on the 
+    """Rearranges the structure of the input based on the
         given dialect"""
     tagged = nltk.pos_tag(tokens)
     for patterns,replacements,chance in dialect.structure_rules:
@@ -70,12 +82,12 @@ def restructure(tokens, dialect):
             for i in range(len(tagged)):
                 if not pos_tag_match(tagged,i,pattern):
                     continue
-                if random.random() >= chance: 
+                if random.random() >= chance:
                     continue
                 replacement = random.choice(replacements)
                 new = tagged[:i]
                 for r in replacement:
-                    if type(r)==int: 
+                    if type(r)==int:
                         new += [tagged[i+r]]
                     else:
                         new += [(r,"?")]
@@ -83,13 +95,13 @@ def restructure(tokens, dialect):
                 tagged = new
                 break
     return iter([word for word,tag in tagged])
-                    
-    
+
+
 def pos_tag_match(tagged,i,pattern):
     for j,ptag in enumerate(pattern):
-        if i+j >= len(tagged): 
+        if i+j >= len(tagged):
             return False
-        if not bool(re.match("^"+ptag.replace("*",".*")+"$",tagged[i+j][1])): 
+        if not bool(re.match("^"+ptag.replace("*",".*")+"$",tagged[i+j][1])):
             return False
     return True
 

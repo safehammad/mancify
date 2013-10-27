@@ -1,3 +1,14 @@
+from __future__ import (
+    unicode_literals,
+    absolute_import,
+    division,
+    print_function,
+    )
+
+# Make Py2's str type like Py3's
+str = type('')
+
+
 ignores = [ "i","a" ]
 
 word_rules = [
@@ -157,4 +168,4 @@ if __name__ == "__main__":
     for patts,repls in words:
         for patt in patts:
             text = re.sub(r'\b'+patt+r'\b',lambda m: random.choice(repls),text)
-    print text
+    print(text)
