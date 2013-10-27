@@ -20,6 +20,7 @@ from clockwork import clockwork
 
 from mancify import translator
 from mancify.dialects import manc, normal
+from mancify.sms import MancifySMSService
 
 DIALECTS = {
     "manc":   manc,
@@ -34,7 +35,7 @@ SMS_MAX_LENGTH = 459
 class MancifyWsgiApp(object):
     def __init__(self, **kwargs):
         super(MancifyWsgiApp, self).__init__()
-        self.sms_api = clockwork.API(kwargs['clockwork_api_key'])
+        self.sms = MancifySMSService(kwargs['clockwork_api_key'])
         self.exec_timeout = kwargs.get('exec_timeout', 10)
         self.connect_timeout = kwargs.get('connect_timeout', 30)
         self.session_timeout = kwargs.get('session_timeout', 300)
@@ -115,10 +116,10 @@ class MancifyWsgiApp(object):
             hostname, username, password = bits[:3]
             dlname = bits[3] if len(bits) > 3 else "manc"
         except ValueError:
-            self.mobile_send(mobile,
+            self.send(sender, mobile,
                 'Invalid connection request. Please send '
                 'hostname,username,password[,dialect]',
-                normal, sender)
+                normal)
         else:
             dialect = DIALECTS.get(dlname, manc)
             logging.info('Opening connection to %s for %s', hostname, username)
@@ -132,17 +133,17 @@ class MancifyWsgiApp(object):
                 msg = str(e)
                 if len(msg) > 140:
                     msg = msg[:137] + '...'
-                self.mobile_send(mobile, msg, dialect, sender)
+                self.send(sender, mobile, msg, dialect)
             else:
-                self.sessions[mobile] = (session, datetime.now(),dialect)
+                self.sessions[mobile] = (session, datetime.now(), dialect)
                 msg = 'Connected to %s' % hostname
-                self.mobile_send(mobile, msg, dialect,sender)
+                self.send(sender, mobile, msg, dialect)
 
     def ssh_close(self, mobile, sender=None):
         logging.info('Closing session for %s', mobile)
         session, timestamp, dialect = self.sessions.pop(mobile)
         session.close()
-        self.mobile_send(mobile, 'Ta very much!', dialect, sender)
+        self.send(sender, mobile, 'Ta very much!', dialect)
 
     def ssh_exec(self, mobile, content, sender=None):
         logging.debug('Executing %s for %s', content, mobile)
@@ -158,50 +159,9 @@ class MancifyWsgiApp(object):
             msg = err
         else:
             msg = "There's nothing to output!"
-        self.mobile_send(mobile, msg, dialect, sender)
+        self.send(sender, mobile, msg, dialect)
 
-    def mobile_send(self, mobile, content, dialect, sender=None):
-        logging.debug('Sending message to %s', mobile)
-        for chunk in self.mobile_format(content, dialect):
-            # Send up to 459 characters at a time (the maximum length of a
-            # triple concatenated SMS message)
-            msg = clockwork.SMS(to=mobile, message=chunk, from_name=sender)
-            response = self.sms_api.send(msg)
-            if not response.success:
-                logging.error('%s %s', response.error_code, response.error_description)
-
-    def mobile_format(self, content, dialect):
-        # Replace multiple consecutive spaces and line breaks with individual
-        # spaces and line breaks (no sense wasting credits on them)
-        content = translator.translate(content.strip(), dialect)
-        content = re.sub(' +', ' ', content)
-        content = re.sub('\r\n', '\n', content)
-        content = re.sub('\n+', '\n', content)
-        # If necessary, chunk content into SMS_MAX_LENGTH chunks, prefixing
-        # each with a page number
-        if len(content) < SMS_MAX_LENGTH:
-            yield content
-        else:
-            sent = 0
-            page = 1
-            while content and sent < self.output_limit:
-                content = 'p%d:\n%s' % (page, content.strip())
-                if sent + SMS_MAX_LENGTH > self.output_limit:
-                    chunk = content[:SMS_MAX_LENGTH - 3] + '...'
-                    content = ''
-                elif len(content) < SMS_MAX_LENGTH:
-                    chunk = content
-                    content = ''
-                else:
-                    # Try and split on a line break or a space if one is near
-                    # the end of the current chunk
-                    match = re.match('(.*)[ \n](.*)', content[:SMS_MAX_LENGTH], re.DOTALL)
-                    if match and len(match.group(2)) < 10:
-                        chunk = match.group(1)
-                        content = match.group(2) + content[SMS_MAX_LENGTH:]
-                    else:
-                        chunk = content[:SMS_MAX_LENGTH]
-                        content = content[SMS_MAX_LENGTH:]
-                yield chunk
-                sent += len(chunk)
-                page += 1
+    def send(self, sender, recipient, content, dialect=None):
+        if dialect is None:
+            dialect = normal
+        self.sms.send(sender, recipient, translator.translate(content, dialect))
