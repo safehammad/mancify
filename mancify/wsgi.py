@@ -19,6 +19,8 @@ from wheezy.routing import PathRouter, url
 from webob import Request, Response, exc
 from clockwork import clockwork
 
+from mancify import translator
+from mancify.dialects import manc
 from mancify.sms import MancifySMSService
 from mancify.ssh import MancifySSHSession
 
@@ -37,8 +39,9 @@ class MancifyWsgiApp(object):
         self.output_limit = kwargs.get('output_limit', 1024)
         self.router = PathRouter()
         self.router.add_routes([
-            url('/',    self.do_index),
-            url('/ssh', self.do_ssh),
+            url('/',          self.do_index),
+            url('/ssh',       self.do_ssh),
+            url('/translate', self.do_translate),
             ])
         self.lock = threading.Lock()
         self.sessions = {}
@@ -105,6 +108,26 @@ class MancifyWsgiApp(object):
 </html>
 """
         return resp
+
+    def do_translate(self, req):
+        # Check the request has the required parameters
+        if not 'msg_id' in req.params:
+            raise exc.HTTPBadRequest('Missing msg_id parameter')
+        if not 'from' in req.params:
+            raise exc.HTTPBadRequest('Missing from parameter')
+        if not 'content' in req.params:
+            raise exc.HTTPBadRequest('Missing content parameter')
+        msg_id = req.params['msg_id']
+        recipient = req.params['from']
+        sender = req.params['to']
+        content = req.params['content']
+        # If we've seen the message before it's a duplicate. Return 200 OK so
+        # the server doesn't keep retrying but otherwise ignore it
+        if msg_id in self.messages:
+            raise exc.HTTPOk('Message already processed')
+        self.messages.add(msg_id)
+        self.sms.send(sender, recipient, translator.translate(content, manc))
+        raise exc.HTTPOk('Message processed')
 
     def do_ssh(self, req):
         # Check the request has the required parameters
