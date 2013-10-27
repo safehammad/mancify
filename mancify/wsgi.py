@@ -22,17 +22,19 @@ from mancify import translator
 from mancify.dialects import manc, normal
 from mancify.sms import MancifySMSService
 
-DIALECTS = {
-    "manc":   manc,
-    "normal": normal,
-}
-
 # Maximum length of an SMS message (with triple concatenation, the maximum
 # permitted under GSM)
 SMS_MAX_LENGTH = 459
 
 
 class MancifyWsgiApp(object):
+    connect_re = re.compile(r'ssh +(?P<username>[^@ ]+)@(?P<hostname>[^ ]+) +(?P<password>[^ ]+)( +(?P<dialect>.*))?')
+    dialects = {
+        "manc":   manc,
+        "normal": normal,
+    }
+
+
     def __init__(self, **kwargs):
         super(MancifyWsgiApp, self).__init__()
         self.sms = MancifySMSService(kwargs['clockwork_api_key'])
@@ -101,49 +103,46 @@ class MancifyWsgiApp(object):
             raise exc.HTTPOk('Message already processed')
         self.messages.add(msg_id)
         # Determine if this is a new session or not
-        if mobile in self.sessions:
-            if content == '^D' or content == 'logout':
-                self.ssh_close(mobile, sender)
+        try:
+            if mobile in self.sessions:
+                if content == '^D' or content == 'logout':
+                    self.ssh_close(mobile, sender)
+                else:
+                    self.ssh_exec(mobile, content, sender)
             else:
-                self.ssh_exec(mobile, content, sender)
-        else:
-            self.ssh_open(mobile, content, sender)
+                self.ssh_open(mobile, content, sender)
+        except Exception as e:
+            msg = str(e)
+            if len(msg) > 140:
+                msg = msg[:137] + '...'
+            self.send(sender, mobile, msg)
         raise exc.HTTPOk('Message processed')
 
     def ssh_open(self, mobile, content, sender=None):
-        try:
-            bits = content.split(',', 3)
-            hostname, username, password = bits[:3]
-            dlname = bits[3] if len(bits) > 3 else "manc"
-        except ValueError:
-            self.send(sender, mobile,
+        match = self.connect_re.match(content)
+        if not match:
+            raise ValueError(
                 'Invalid connection request. Please send '
-                'hostname,username,password[,dialect]',
-                normal)
-        else:
-            dialect = DIALECTS.get(dlname, manc)
-            logging.info('Opening connection to %s for %s', hostname, username)
-            try:
-                session = SSHClient()
-                session.set_missing_host_key_policy(AutoAddPolicy())
-                session.connect(
-                    hostname, username=username, password=password,
-                    timeout=self.connect_timeout)
-            except (socket.error, SSHException) as e:
-                msg = str(e)
-                if len(msg) > 140:
-                    msg = msg[:137] + '...'
-                self.send(sender, mobile, msg, dialect)
-            else:
-                self.sessions[mobile] = (session, datetime.now(), dialect)
-                msg = 'Connected to %s' % hostname
-                self.send(sender, mobile, msg, dialect)
+                'ssh username@hostname password [dialect]')
+        hostname = match.group('hostname')
+        username = match.group('username')
+        password = match.group('password')
+        dialect = self.dialects.get(match.group('dialect'), manc)
+        logging.info('Opening connection to %s for %s', hostname, username)
+        session = SSHClient()
+        session.set_missing_host_key_policy(AutoAddPolicy())
+        session.connect(
+            hostname, username=username, password=password,
+            timeout=self.connect_timeout)
+        self.sessions[mobile] = (session, datetime.now(), dialect)
+        msg = 'Connected to %s' % hostname
+        self.send(sender, mobile, msg, dialect)
 
     def ssh_close(self, mobile, sender=None):
         logging.info('Closing session for %s', mobile)
         session, timestamp, dialect = self.sessions.pop(mobile)
         session.close()
-        self.send(sender, mobile, 'Ta very much!', dialect)
+        self.send(sender, mobile, 'Disconnected', dialect)
 
     def ssh_exec(self, mobile, content, sender=None):
         logging.debug('Executing %s for %s', content, mobile)
@@ -165,3 +164,4 @@ class MancifyWsgiApp(object):
         if dialect is None:
             dialect = normal
         self.sms.send(sender, recipient, translator.translate(content, dialect))
+
