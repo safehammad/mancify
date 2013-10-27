@@ -76,7 +76,7 @@ def translate(text, dialect=manc):
 def restructure(tokens, dialect):
     """Rearranges the structure of the input based on the
         given dialect"""
-    tagged = nltk.pos_tag(tokens)
+    tagged = [("START","START")] + nltk.pos_tag(tokens) + [("END","END")]
     for patterns,replacements,chance in dialect.structure_rules:
         for pattern in patterns:
             for i in range(len(tagged)):
@@ -94,7 +94,7 @@ def restructure(tokens, dialect):
                 new += tagged[i+len(pattern):]
                 tagged = new
                 break
-    return iter([word for word,tag in tagged])
+    return iter([word for word,tag in tagged[1:-1]])
 
 
 def pos_tag_match(tagged,i,pattern):
@@ -102,6 +102,25 @@ def pos_tag_match(tagged,i,pattern):
         if i+j >= len(tagged):
             return False
         if not bool(re.match("^"+ptag.replace("*",".*")+"$",tagged[i+j][1])):
+            return False
+    return True
+    
+
+def phoneme_match(phons,i,pattern):
+    for j,pfon in enumerate(pattern):
+        if i+j >= len(phons):
+            return False
+        if pfon == "VOWEL":
+            if phons[i+j] not in (
+                    "AA","AE","AH","AO","AW","AY","EH","ER","EY","IH","IY","OW","OY","UH","UW"):
+                return False
+            else: continue
+        if pfon == "CONS":
+            if phons[i+j] not in (
+                    "B","CH","D","DH","F","G","HH","JH","K","L","M","N","NG","P","R","S","SH","T","TH","V","W","Y","Z","ZH","'"):
+                return False
+            else: continue
+        if pfon != phons[i+j]: 
             return False
     return True
 
@@ -141,11 +160,11 @@ def alter_phonemes(word,dialect):
     for patterns, replacement in dialect.phoneme_rules:
         for pattern in patterns:
             for i in range(len(phons)):
-                if phons[i:i+len(pattern)] == pattern:
-                    "replacing"
-                    phons = phons[:i] + replacement + phons[i+len(pattern):]
+                if phoneme_match(phons,i,pattern):
+                    r = [phons[i+rfon] if type(rfon)==int else rfon for rfon in replacement]
+                    phons = phons[:i] + r + phons[i+len(pattern):]
                     break
-
+                    
     return "".join([phoneme_reprs[p] for p in phons[1:-1]])
 
 
