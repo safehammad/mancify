@@ -65,8 +65,9 @@ phoneme_reprs = {
 phoneme_dict = cmudict.dict()
 
 
-def translate(text, dialect=manc):
+def translate(text, dialect=manc, seed=None):
     """Translate from plain English to given dialect"""
+    random.seed(seed)
     tokens = tokenize(text)
     restructured = restructure(tokens,dialect)
     translated = substitute(restructured, dialect)
