@@ -12,7 +12,7 @@ import re
 import logging
 import socket
 import threading
-from datetime import datetime
+import time
 
 from paramiko import SSHClient, AutoAddPolicy, SSHException
 from wheezy.routing import PathRouter, url
@@ -43,6 +43,30 @@ class MancifyWsgiApp(object):
         self.lock = threading.Lock()
         self.sessions = {}
         self.messages = set()
+        self.terminate = threading.Event()
+        self.reap_thread = threading.Thread(target=self.reap_sessions)
+        self.reap_thread.daemon = True
+        self.reap_thread.start()
+
+    def close(self):
+        self.terminate.set()
+        self.reap_thread.join(5)
+
+    def reap_sessions(self):
+        while True:
+            reap_list = []
+            now = time.time()
+            with self.lock:
+                for recipient, session in self.sessions.iteritems():
+                    if not session.timestamp:
+                        reap_list.append((recipient, session))
+                    if (now - session.timestamp) > self.session_timeout:
+                        reap_list.append((recipient, session))
+                for recipient, session in reap_list:
+                    session.close(quiet=True)
+                    del self.sessions[recipient]
+            if self.terminate.wait(10):
+                break
 
     def __call__(self, environ, start_response):
         req = Request(environ)
@@ -105,8 +129,7 @@ class MancifyWsgiApp(object):
                         self.sms, sender, recipient,
                         self.connect_timeout, self.exec_timeout)
                     self.sessions[recipient] = session
-                else:
-                    session.timestamp = datetime.now()
+                session.timestamp = time.time()
             session.execute(content)
         except Exception as e:
             msg = str(e)

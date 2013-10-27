@@ -185,9 +185,12 @@ class MancifyConsoleApp(object):
 
     def main(self, args):
         app = MancifyWsgiApp(**vars(args))
-        httpd = make_server(args.listen[0], args.listen[1], app)
-        logging.info('Listening on %s:%s' % (args.listen[0], args.listen[1]))
-        httpd.serve_forever()
+        try:
+            httpd = make_server(args.listen[0], args.listen[1], app)
+            logging.info('Listening on %s:%s' % (args.listen[0], args.listen[1]))
+            httpd.serve_forever()
+        finally:
+            app.close()
         return 0
 
 

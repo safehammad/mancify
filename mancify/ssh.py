@@ -56,14 +56,15 @@ class MancifySSHSession(object):
             timeout=self.connect_timeout)
         self.send('Connected to %s' % self.hostname)
 
-    def close(self):
+    def close(self, quiet=False):
         logging.info('Closing connection to %s for %s', self.hostname, self.sender)
-        session.close()
+        self.client.close()
+        if not quiet:
+            self.send('Closed connection to %s' % self.hostname)
         self.hostname = None
         self.client = None
         self.dialect = None
         self.timestamp = None
-        self.send('Closed connection to %s' % self.hostname)
 
     def execute(self, content):
         if not self.client:
