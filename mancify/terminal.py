@@ -10,18 +10,25 @@ str = type('')
 
 import sys
 import os
+import re
 import argparse
 import ConfigParser
 import logging
 import locale
+import curses
+import curses.ascii
+import curses.textpad
+from itertools import izip_longest
 from wsgiref.simple_server import make_server
 
 from mancify import __version__
+from mancify.translator import translate
 from mancify.wsgi import MancifyWsgiApp
 
 
 # Use the user's default locale instead of C
 locale.setlocale(locale.LC_ALL, '')
+ENCODING = locale.getpreferredencoding()
 
 # Set up a console logging handler which just prints messages to stderr without
 # any other adornments. This will be used for logging messages sent before we
@@ -53,9 +60,9 @@ def interface(s):
     return (host, port)
 
 
-class MancifyConsoleApp(object):
+class BaseConsoleApp(object):
     def __init__(self):
-        super(MancifyConsoleApp, self).__init__()
+        super(BaseConsoleApp, self).__init__()
         self.parser = argparse.ArgumentParser(
             description = self.__doc__,
             argument_default=argparse.SUPPRESS)
@@ -63,43 +70,14 @@ class MancifyConsoleApp(object):
         self.parser.add_argument('--version', action='version',
             version=__version__)
         self.parser.add_argument(
-            '-q', '--quiet', dest='log_level', action='store_const',
-            const=logging.ERROR, help='produce less console output')
-        self.parser.add_argument(
-            '-v', '--verbose', dest='log_level', action='store_const',
-            const=logging.INFO, help='produce more console output')
+            '-c', '--config', dest='config', action='store',
+            help='specify the configuration file to load')
         self.parser.add_argument(
             '-l', '--log-file', dest='log_file', metavar='FILE', default=None,
             help='log messages to the specified file')
         self.parser.add_argument(
             '-P', '--pdb', dest='debug', action='store_true', default=False,
             help='run under PuDB/PDB (debug mode)')
-        self.parser.add_argument(
-            '-L', '--listen', dest='listen', action='store',
-            default='0.0.0.0:%d' % (8000 if os.geteuid() else 80),
-            metavar='HOST[:PORT]', type=interface,
-            help='the address and port of the interface the web-server will '
-            'listen on. Default: %(default)s')
-        self.parser.add_argument(
-            '--exec-timeout', dest='exec_timeout', action='store', default=10,
-            metavar='SECS', type=int,
-            help='the timeout for executing commands over SSH')
-        self.parser.add_argument(
-            '--connect-timeout', dest='connect_timeout', action='store',
-            default=30, metavar='SECS', type=int,
-            help='the timeout for SSH connections')
-        self.parser.add_argument(
-            '--session-timeout', dest='session_timeout', action='store',
-            default=300, metavar='SECS', type=int,
-            help='the timeout between SSH commands')
-        self.parser.add_argument(
-            '--output-limit', dest='output_limit', action='store',
-            default=1024, metavar='BYTES', type=int,
-            help='the maximum size of output to permit per command')
-        self.parser.add_argument(
-            '--clockwork-api-key', dest='clockwork_api_key', action='store',
-            metavar='KEY', default=None,
-            help='your clockwork API key')
 
     def __call__(self, args=None):
         if args is None:
@@ -119,7 +97,7 @@ class MancifyConsoleApp(object):
                 return self.main(args) or 0
             except Exception as e:
                 logging.error(str(e))
-                return 1
+                raise
 
     def read_configuration(self, args):
         # Parse the --config argument only
@@ -174,6 +152,85 @@ class MancifyConsoleApp(object):
         else:
             logging.getLogger().setLevel(logging.INFO)
 
+    def main(self, args):
+        raise NotImplementedError
+
+
+class MancifyCursesApp(BaseConsoleApp):
+    def __init__(self):
+        super(MancifyCursesApp, self).__init__()
+
+    def main(self, args):
+        curses.wrapper(self.event_loop)
+
+    def event_loop(self, screen):
+        y, x = screen.getmaxyx()
+        in_win = screen.subwin(y // 2, x, 0, 0)
+        out_win = screen.subwin(y // 2 - 1, x, y // 2 + 1, 0)
+        in_box = curses.textpad.Textbox(in_win)
+        old_content = []
+        new_content = []
+        content = []
+        while True:
+            c = in_win.getch()
+            in_box.do_command(c)
+            pos = in_win.getyx()
+            old_content = content
+            new_content = [(word, None) for word in re.split(r'(\s+)', in_box.gather())]
+            content = []
+            for (old_word, new_word) in izip_longest(old_content, new_content):
+                if new_word is None:
+                    pass
+                elif (old_word is None) or (old_word[0] != new_word[0]):
+                    if not new_word[0]:
+                        pass
+                    elif re.match('\s+', new_word[0]):
+                        content.append((new_word[0], new_word[0]))
+                    else:
+                        content.append((new_word[0], translate(new_word[0])))
+                else:
+                    content.append(old_word)
+            out_win.addstr(0, 0, ''.join(t for (w, t) in content))
+            in_win.move(*pos)
+            out_win.refresh()
+
+
+class MancifyConsoleApp(BaseConsoleApp):
+    def __init__(self):
+        super(MancifyConsoleApp, self).__init__()
+        self.parser.add_argument(
+            '-q', '--quiet', dest='log_level', action='store_const',
+            const=logging.ERROR, help='produce less console output')
+        self.parser.add_argument(
+            '-v', '--verbose', dest='log_level', action='store_const',
+            const=logging.INFO, help='produce more console output')
+        self.parser.add_argument(
+            '-L', '--listen', dest='listen', action='store',
+            default='0.0.0.0:%d' % (8000 if os.geteuid() else 80),
+            metavar='HOST[:PORT]', type=interface,
+            help='the address and port of the interface the web-server will '
+            'listen on. Default: %(default)s')
+        self.parser.add_argument(
+            '--exec-timeout', dest='exec_timeout', action='store', default=10,
+            metavar='SECS', type=int,
+            help='the timeout for executing commands over SSH')
+        self.parser.add_argument(
+            '--connect-timeout', dest='connect_timeout', action='store',
+            default=30, metavar='SECS', type=int,
+            help='the timeout for SSH connections')
+        self.parser.add_argument(
+            '--session-timeout', dest='session_timeout', action='store',
+            default=300, metavar='SECS', type=int,
+            help='the timeout between SSH commands')
+        self.parser.add_argument(
+            '--output-limit', dest='output_limit', action='store',
+            default=1024, metavar='BYTES', type=int,
+            help='the maximum size of output to permit per command')
+        self.parser.add_argument(
+            '--clockwork-api-key', dest='clockwork_api_key', action='store',
+            metavar='KEY', default=None,
+            help='your clockwork API key')
+
     def get_app(self, ini_path=None):
         args = []
         if ini_path:
@@ -194,7 +251,8 @@ class MancifyConsoleApp(object):
         return 0
 
 
-main = MancifyConsoleApp()
+curses_main = MancifyCursesApp()
+serve_main = MancifyConsoleApp()
 
 if __name__ == '__main__':
     sys.exit(main())
