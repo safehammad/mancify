@@ -98,18 +98,18 @@ And run the "ls" command with the following URL::
 Try the translator
 ------------------
 
-You might have noticed that by setting the dialect to "manc" you get pure
-Mancuian output! You can try out the translator by running ``mancify-translate`` on a
+You might have noticed that by setting the dialect to "manc" you get pure Mancuian
+output! You can use the standalone translator by running ``mancify-translate`` on a
 file or by piping stdin.
 
 For example::
 
     $ cat myfile
-    This is really bad!
+    Hello, friend! Will you come back to my house?
     $ mancify-translate myfile 
-    This iz well pear-shaped!
-    $ echo Hello, friend! Will you come back to my house? | mancify-translate 
     Arrite, pal! Wil youse kuhm bak tuh me gaff or wot?
+    $ echo This is really bad! | mancify-translate 
+    This iz well pear-shaped!
 
 
 Testing
