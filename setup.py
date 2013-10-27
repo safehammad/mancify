@@ -74,6 +74,12 @@ def main():
             cmdclass             = {'test': PyTest},
             )
 
+    # Download the required NLTK packages automatically
+    import nltk
+    nltk.download('cmudict')
+    nltk.download('maxent_treebank_pos_tagger')
+
+
 if __name__ == '__main__':
     main()
 
