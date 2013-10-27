@@ -8,8 +8,22 @@ from __future__ import (
 # Make Py2's str type like Py3's
 str = type('')
 
+structure_rules = [
+    ((["JJ*","NN*"],),
+        (["chuffing",0,1],),
+        0.1),
+    ((["END"],),
+        (["our","kid",0],["init",0],["and","that",0],["and","stuff",0]),
+        0.1),
+    ((["NN*"],),
+        (["thing"],),
+        0.1),
+    ((["START"],),
+        ([0,"here","yar",","],),
+        0.1),
+]
 
-ignores = [ "i","a" ]
+ignores = [ "i","a","be","will" ]
 
 word_rules = [
     (("and",),
@@ -22,6 +36,8 @@ word_rules = [
         ("me",)),
     (("what",),
         ("wot",)),
+    (("our",),
+        ("ah",)),
     (("acceptable","ace","awesome","brilliant","excellent","fantastic","good",
             "great","likable","lovely","super","smashing","nice","pleasing",
             "rad","superior","worthy","admirable","agreeable","commendable",
@@ -90,7 +106,7 @@ word_rules = [
     (("men",),
         ("blokes", "fellas",)),
     (("mate", "friend"),
-        ("pal",)),
+        ("pal","mate",)),
     (("hello","greetings","welcome","hi","howdy",),
         ("arrite","how do","hiya",)),
     (("bye","goodbye","farewell",),
@@ -98,9 +114,9 @@ word_rules = [
     (("kiss",),
         ("snog",)),
     (("sandwich",),
-        ("butty",)),
+        ("butty","barm")),
     (("sandwiches",),
-        ("butties",)),
+        ("butties","barms")),
     (("eat","consume","absorb","digest","food","sustinance",),
         ("scran",)),
     (("you",),
@@ -122,6 +138,8 @@ word_rules = [
         ("was",)),
     (("yes","ok",),
         ("aye",)),
+    (("are",),
+        ("iz",)),
     (("no",),
         ("nah",)),
     (("haven't",),
@@ -131,15 +149,15 @@ word_rules = [
     (("the",),
         ("t'",)),
     (("?",),
-        ("eh?","or wot?",)),
+        ("eh?","or wot?","? Yeah?")),
 ]
 
 phoneme_rules = [
     ((["START","HH"],),
         ["START","'"]),
     ((["ER","END"],),
-        ["AA","'","END"]),
-    ((["T","END"]),
+      ["AA","'","END"]),
+    ((["T","END"],),
         ["'","END"],),
     ((["AE","R"],),
         ["AE"]),
@@ -153,14 +171,17 @@ phoneme_rules = [
         ["N","'","END"]),
     ((["T","UW","END"],),
         ["T","AH","END"]),
+    ((["START","DH"],),
+        ["START","D"]),
+    ((["TH","END"],),
+        ["F","END"],),
+    ((["DH","END"],),
+        ["V","END"],),
+    ((["START","TH"],),
+        ["START","F"]),
+    ((["VOWEL","T","VOWEL"],),
+        [0,"R",2]),
 ]
-
-structure_rules = [
-    ((["JJ*","NN*"],),
-        (["chuffin'",0,1],),
-        0.1),
-]
-
 
 if __name__ == "__main__":
     import re,random,sys
