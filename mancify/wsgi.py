@@ -63,8 +63,11 @@ class MancifyWsgiApp(object):
                     if (now - session.timestamp) > self.session_timeout:
                         reap_list.append((recipient, session))
                 for recipient, session in reap_list:
-                    session.close(quiet=True)
-                    del self.sessions[recipient]
+                    try:
+                        session.close(quiet=True)
+                    finally:
+                        del self.sessions[recipient]
+                        session = None
             if self.terminate.wait(10):
                 break
 

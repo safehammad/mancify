@@ -36,12 +36,12 @@ class MancifySSHSession(object):
         self.timestamp = None
         self.hostname = None
         self.client = None
-        self.dialect = None
+        self.dialect = normal
 
     def open(self, content):
         match = self.connect_re.match(content)
         if not match:
-            self.send(
+            raise ValueError(
                 'Invalid connection request. Please send '
                 'ssh username@host password [dialect]')
         self.hostname = match.group('hostname')
@@ -57,13 +57,14 @@ class MancifySSHSession(object):
         self.send('Connected to %s' % self.hostname)
 
     def close(self, quiet=False):
-        logging.info('Closing connection to %s for %s', self.hostname, self.sender)
-        self.client.close()
-        if not quiet:
-            self.send('Closed connection to %s' % self.hostname)
+        if self.client:
+            logging.info('Closing connection to %s for %s', self.hostname, self.sender)
+            self.client.close()
+            if not quiet:
+                self.send('Closed connection to %s' % self.hostname)
         self.hostname = None
         self.client = None
-        self.dialect = None
+        self.dialect = normal
         self.timestamp = None
 
     def execute(self, content):
