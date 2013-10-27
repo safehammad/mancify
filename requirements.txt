@@ -1,6 +1,0 @@
-numpy<2.0dev
-nltk==2.0.4
-paramiko<2.0dev
-clockwork<2.0dev
-webob<2.0dev
-wheezy.routing<1.0dev
