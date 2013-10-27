@@ -2,12 +2,13 @@
 Mancify
 =======
 
-SSH with a Manc flair! Coded at Hack Manchester, October 2013.
+SSH with a Manc flair! Coded by team Pynamo (@waveform80, @frimkron, @safehammad)
+at `Hack Manchester`_, October 2013.
 
 Don't have internet? Need to SSH into your server? Have your phone handy? Proud
-to be Mancunian? This app enables you to SSH into a server and communicate with
-it via SMS messaging. As an added bonus, you get to see your output in pure
-Mancunian dialect.
+to be `Mancunian <http://en.wikipedia.org/wiki/Mancunian>`_? This app enables you
+to SSH into a server and communicate with it via SMS messaging. As an added bonus,
+you get to see your output in pure Mancunian dialect!
 
 
 Setup
@@ -85,7 +86,7 @@ browser::
 Note that "msg_id" represents the message id which can be any string but must
 be unique with each invocation.
 
-To open an SSH connection to your server, use the following::
+So to open an SSH connection to your server, use the following URL::
 
     http://localhost:8000/ssh?to=<inbound_sms_no>&from=<your_mobile_no>&content=ssh+username@hostname+password+dialect&msg_id=AB_1
 
@@ -110,9 +111,11 @@ For example::
 Testing
 -------
 
-To test in Python 2.7+::
+To run the tests in Python 2.7+::
 
     python -m unittest discover
 
 
 .. _Clockwork: http://www.clockworksms.com/
+
+.. _`Hack Manchester`: http://www.hackmanchester.com/
