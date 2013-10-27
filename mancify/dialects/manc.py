@@ -181,7 +181,7 @@ phoneme_rules = [
     ((["START","TH"],),
         ["START","F"]),
     ((["VOWEL","T","VOWEL"],),
-        [0,"'",2]),
+        [0,"R",2]),
 ]
 
 if __name__ == "__main__":
