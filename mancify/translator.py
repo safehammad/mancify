@@ -6,7 +6,7 @@ import nltk
 from nltk.tokenize import wordpunct_tokenize
 from nltk.corpus import cmudict
 
-import mancify.dialects.manc as manc
+from .dialects import manc
 
 phoneme_reprs = {
     "AA":   "o",    # 'o' as in 'odd'
@@ -198,3 +198,14 @@ def match_case(text, match_text):
         return text.capitalize()
     else:
         return text
+
+
+def main():
+    """Entry point to run the standalone translator on a file or on stdin."""
+    import sys
+    f = sys.stdin if len(sys.argv) == 1 else open(sys.argv[1])
+    print(translate(f.read()))
+
+
+if __name__ == '__main__':
+    main()

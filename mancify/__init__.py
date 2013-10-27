@@ -40,7 +40,8 @@ __extra_requires__ = {
 
 __entry_points__ = {
     'console_scripts': [
-        'mancify = mancify.terminal:main',
+        'mancify-serve = mancify.terminal:main',
+        'mancify-translate = mancify.translator:main',
         ],
     }
 

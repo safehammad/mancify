@@ -24,7 +24,7 @@ Setup
   appended to it. For example, if you bind the application to
   http://www.myserver.com/mancify, then point the inbound SMS number to
   http://www.myserver.com/mancify/ssh. Note that the Clockwork API requires
-  your web-server to be running on port 80 (or port 443 with a valid cert).
+  your web-server to be running on port 80 (or port 443 with a valid certificate).
 
 * Place your `Clockwork`_ API Key in ``~/.mancify.ini`` like so::
 
@@ -32,9 +32,9 @@ Setup
     clockwork_api_key=abcde12345
 
 Now you are ready to run the server. The simple way of doing this is to run
-``sudo mancify`` which will run the server on port 80 (remember that Clockwork
-requires this). However, this obviously assumes you don't already have a
-web-server (like Apache) running on port 80.
+``sudo mancify-serve -v`` which will run the server on port 80 (Clockwork
+requires this). This assumes you don't already have a web-server (like Apache)
+running on port 80.
 
 If you wish to integrate the application with an existing web-server, visit
 http://wsgi.readthedocs.org/ for information on integrating WSGI applications
@@ -77,7 +77,7 @@ you can run a server locally. You'll be able to receive text messages but you
 won't be able to send them (instead you can simulate sending a text message via
 your web browser).
 
-Simply run ``mancify`` which will bind the server to localhost:8000. Now
+Simply run ``mancify-serve -v`` which will bind the server to localhost:8000. Now
 simulate sending a text message by visiting the following URL in your web
 browser::
 
@@ -99,13 +99,17 @@ Try the translator
 ------------------
 
 You might have noticed that by setting the dialect to "manc" you get pure
-Mancuian output! You can try out the translator on its own.
+Mancuian output! You can try out the translator by running ``mancify-translate`` on a
+file or by piping stdin.
 
 For example::
 
-    >>> from mancify.translator import translate
-    >>> translate('This is bad!')
-    'This iz pants!'
+    $ cat myfile
+    This is really bad!
+    $ mancify-translate myfile 
+    This iz well pear-shaped!
+    $ echo Hello, friend! Will you come back to my house? | mancify-translate 
+    Arrite, pal! Wil youse kuhm bak tuh me gaff or wot?
 
 
 Testing
