@@ -8,6 +8,7 @@ from __future__ import (
 # Make Py2's str type like Py3's
 str = type('')
 
+import logging
 from itertools import chain
 import random
 import re
@@ -66,7 +67,7 @@ phoneme_dict = cmudict.dict()
 
 
 def translate(text, dialect=manc, seed=None):
-    """Translate from plain English to given dialect"""
+    """Translate from plain English to given dialect."""
     random.seed(seed)
     tokens = tokenize(text)
     restructured = restructure(tokens,dialect)
@@ -75,9 +76,9 @@ def translate(text, dialect=manc, seed=None):
 
 
 def restructure(tokens, dialect):
-    """Rearranges the structure of the input based on the
-        given dialect"""
+    """Rearranges the structure of the input based on the given dialect"""
     tagged = [("START","START")] + nltk.pos_tag(tokens) + [("END","END")]
+    logging.debug(tagged)
     for patterns,replacements,chance in dialect.structure_rules:
         for pattern in patterns:
             for i in range(len(tagged)):
@@ -95,7 +96,8 @@ def restructure(tokens, dialect):
                 new += tagged[i+len(pattern):]
                 tagged = new
                 break
-    return iter([word for word,tag in tagged[1:-1]])
+
+    return [word for word,tag in tagged[1:-1]]
 
 
 def pos_tag_match(tagged,i,pattern):
