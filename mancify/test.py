@@ -19,13 +19,6 @@ class TestMancify(unittest.TestCase):
         self.assertIn(translator.translate('bad'), replacements)
         self.assertIn(translator.translate('poor'), replacements)
 
-    def testTranslate(self):
-        # Includes test for maintaining capitalisation
-        text = 'A line. A& line with^ Symbols.\nAnother line.'
-        expected = "A liyn. A& liyn with^ Simbuhlz.\nUhnuhtho' liyn."
-        actual = translator.translate(text)
-        self.assertEqual(expected, actual)
-
     def testSpacer(self):
         # Check whitespace is maintained
         text = 'This is a very, very good test!\nLine two. And again!'
