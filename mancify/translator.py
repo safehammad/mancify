@@ -78,7 +78,7 @@ def translate(text, dialect=manc, seed=None):
 def restructure(tokens, dialect):
     """Rearranges the structure of the input based on the given dialect"""
     tagged = [("START","START")] + nltk.pos_tag(tokens) + [("END","END")]
-    logging.debug(tagged)
+    logging.debug("Tagged=%s", tagged)
     for patterns,replacements,chance in dialect.structure_rules:
         for pattern in patterns:
             for i in range(len(tagged)):
@@ -150,14 +150,14 @@ def substitute(tokens, dialect):
 
 
 def alter_phonemes(word,dialect):
-    """Write out word phonetically, applying phoneme rules in the
-        process"""
+    """Write out word phonetically, applying phoneme rules in the process."""
     try:
         phons = phoneme_dict[word][0]
     except KeyError:
         return word
 
     phons = [re.sub("[0-9]","",p) for p in phons]
+    logging.debug('Phoneme=[%s->%s]', word, phons)
     phons = ["START"] + phons + ["END"]
 
     for patterns, replacement in dialect.phoneme_rules:
