@@ -5,9 +5,12 @@ from __future__ import (
     print_function,
     )
 
+
 # Make Py2's str type like Py3's
 str = type('')
 
+
+# Rules that take into account part of speech to alter text
 structure_rules = [
     ((["JJ*","NN*"],),
         (["chuffing",0,1],),
@@ -23,8 +26,12 @@ structure_rules = [
         0.05),
 ]
 
+
+# Words to be ignored by the translator
 ignores = [ "i","a","be","will" ]
 
+
+# Direct word substitutions
 word_rules = [
     (("and",),
         ("n'",)),
@@ -156,6 +163,8 @@ word_rules = [
         ("eh?","or wot?","yeah?")),
 ]
 
+
+# Alterations to the sound of a word based on its consonant and vowel sounds
 phoneme_rules = [
     ((["START","HH"],),
         ["START","'"]),
@@ -186,6 +195,7 @@ phoneme_rules = [
     ((["VOWEL","T","VOWEL"],),
         [0,"R",2]),
 ]
+
 
 if __name__ == "__main__":
     import re,random,sys
