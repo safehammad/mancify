@@ -186,15 +186,14 @@ def replace_random(word,dialect):
 
 
 def tokenize(text):
-    """Turn a block of text and tokenize into a list of words and symbols.
+    """Tokenize a block of text into a list of words and symbols.
 
     Features:
       - Retain newlines.
       - Retain special characters.
 
     """
-    lines = (line for line in text.split('\n'))
-    tokens = (wordpunct_tokenize(line) + ['\n'] for line in lines)
+    tokens = (wordpunct_tokenize(line) + ['\n'] for line in text.splitlines())
     return list(chain.from_iterable(tokens))[:-1]
 
 
