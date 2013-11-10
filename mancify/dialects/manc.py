@@ -119,6 +119,10 @@ word_rules = [
         ("butties","barms")),
     (("eat","consume","absorb","digest","food","sustinance",),
         ("scran",)),
+    (("lunch",),
+        ("dinner",)),
+    (("dinner",),
+        ("tea",)),
     (("you",),
         ("youse",)),
     (("idiot","moron","fool","buffoon","clown","jerk","nerd","nitwit","stooge",
@@ -149,7 +153,7 @@ word_rules = [
     (("the",),
         ("t'",)),
     (("?",),
-        ("eh?","or wot?","? Yeah?")),
+        ("eh?","or wot?","yeah?")),
 ]
 
 phoneme_rules = [
