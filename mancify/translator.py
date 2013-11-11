@@ -17,53 +17,8 @@ import nltk
 from nltk.tokenize import wordpunct_tokenize
 from nltk.corpus import cmudict
 
+from .pronunciation import pronounce, spell, Phoneme
 from .dialects import manc
-
-
-phoneme_reprs = {
-    "AA":   "o",    # 'o' as in 'odd'
-    "AE":   "a",    # 'a' as in 'at'
-    "AH":   "uh",   # 'u' as in 'hut'
-    "AO":   "oar",  # 'augh' as in 'caught'
-    "AW":   "ow",   # 'ow' as in 'cow'
-    "AY":   'iy',   # 'i' as in 'hide'
-    "B":    'b',    # 'b' as in 'bee'
-    "CH":   'ch',   # 'ch' as in 'cheese'
-    "D":    'd',    # 'd' as in 'dog'
-    "DH":   'th',   # 'th' as in 'thee'
-    "EH":   'e',    # 'e' as in 'Ed'
-    "ER":   'ur',   # 'ur' as in 'hurt'
-    "EY":   'ey',   # 'a' as in 'ate'
-    "F":    'f',    # 'f' as in 'fee'
-    "G":    'g',    # 'g' as in 'green'
-    "HH":   'h',    # 'h' as in 'house'
-    "IH":   'i',    # 'i' as in 'it'
-    "IY":   'ee',   # 'ea' as in 'eat'
-    "JH":   'j',    # 'g' as in 'gee'
-    "K":    'k',    # 'k' as in 'key'
-    "L":    'l',    # 'l' as in 'lee'
-    "M":    'm',    # 'm' as in 'me'
-    "N":    'n',    # 'kn' as in 'knee'
-    "NG":   'ng',   # 'ng' as in 'ping'
-    "OW":   'oh',   # 'oa' as in 'oat'
-    "OY":   'oy',   # 'oy' as in 'toy'
-    "P":    'p',    # 'p' as in 'pee'
-    "R":    'r',    # 'r' as in 'read'
-    "S":    's',    # 's' as in 'sea'
-    "SH":   'sh',   # 'sh' as in 'she'
-    "T":    't',    # 't' as in 'tea'
-    "TH":   'th',   # 'th' as in 'theta'
-    "UH":   'u',    # 'oo' as in 'hood'
-    "UW":   'oo',   # 'wo' as in 'two'
-    "V":    'v',    # 'v' as in 'vee'
-    "W":    'w',    # 'w' as in 'we'
-    "Y":    'y',    # 'y' as in 'yeild'
-    "Z":    'z',    # 'z' as in 'zee'
-    "ZH":   'z',    # 'z' as in 'seizure'
-    "'":    "'",    # glottal stop
-    }
-
-phoneme_dict = cmudict.dict()
 
 
 def translate(text, dialect=manc, seed=None):
@@ -76,7 +31,7 @@ def translate(text, dialect=manc, seed=None):
 
 
 def restructure(tokens, dialect):
-    """Rearranges the structure of the input based on the given dialect"""
+    """Rearrange the structure of the input based on the given dialect."""
     tagged = [("START","START")] + nltk.pos_tag(tokens) + [("END","END")]
     logging.debug("Tagged=%s", tagged)
     for patterns,replacements,chance in dialect.structure_rules:
@@ -113,18 +68,20 @@ def phoneme_match(phons,i,pattern):
     for j,pfon in enumerate(pattern):
         if i+j >= len(phons):
             return False
-        if pfon == "VOWEL":
-            if phons[i+j] not in (
-                    "AA","AE","AH","AO","AW","AY","EH","ER","EY","IH","IY","OW","OY","UH","UW"):
-                return False
-            else: continue
-        if pfon == "CONS":
-            if phons[i+j] not in (
-                    "B","CH","D","DH","F","G","HH","JH","K","L","M","N","NG","P","R","S","SH","T","TH","V","W","Y","Z","ZH","'"):
-                return False
-            else: continue
-        if pfon != phons[i+j]: 
+        next_phoneme = phons[i + j][0]
+        if not next_phoneme:
             return False
+        elif pfon == "VOWEL":
+            if next_phoneme[0] not in 'AEIOU':
+                return False
+            continue
+        elif pfon == "CONS":
+            if next_phoneme[0] in 'AEIOU':
+                return False
+            continue
+        elif pfon != next_phoneme: 
+            return False
+
     return True
 
 
@@ -149,26 +106,28 @@ def substitute(tokens, dialect):
         yield match_case(substitution, token)
 
 
-def alter_phonemes(word,dialect):
-    """Write out word phonetically, applying phoneme rules in the process."""
+def alter_phonemes(word, dialect, phonetic=False):
+    """Apply the dialect's phoneme rules to a word.
+    
+    If phonetic=True, convert the spelling of the word to a purely phonetic one.
+    """
     try:
-        phons = phoneme_dict[word][0]
+        phons = pronounce(word)
     except KeyError:
         return word
 
-    phons = [re.sub("[0-9]","",p) for p in phons]
-    logging.debug('Phoneme=[%s->%s]', word, phons)
-    phons = ["START"] + phons + ["END"]
+    logging.debug('Phoneme In=[%s->%s]', word, phons)
+    phons = [("START", '')] + phons + [("END", '')]
 
     for patterns, replacement in dialect.phoneme_rules:
         for pattern in patterns:
             for i in range(len(phons)):
                 if phoneme_match(phons,i,pattern):
-                    r = [phons[i+rfon] if type(rfon)==int else rfon for rfon in replacement]
+                    r = [phons[i+rfon] if type(rfon)==int else Phoneme(phoneme=rfon, spelling=spell(rfon)) for rfon in replacement]
                     phons = phons[:i] + r + phons[i+len(pattern):]
-                    break
-                    
-    return "".join([phoneme_reprs[p] for p in phons[1:-1]])
+
+    logging.debug('Phoneme Out=[%s->%s]', word, phons)
+    return "".join((p.spelling if not phonetic else spell(p.phoneme)) for p in phons[1:-1])
 
 
 def replace_random(word,dialect):
