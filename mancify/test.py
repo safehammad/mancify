@@ -50,10 +50,12 @@ class TestPronunciation(unittest.TestCase):
         tests = [
             ('assert', [('AH', 'a'), ('S', 'ss'), ('ER', 'er'), ('T', 't')]),
             ('shott', [('SH', 'sh'), ('AA', 'o'), ('T', 'tt')]),
+            ('accept', [('AE', 'a'), ('K', 'c'), ('S', 'c'), ('EH', 'e'), ('P', 'p'), ('T', 't')]),
+            ('session', [('S', 's'), ('EH', 'e'), ('SH', 'ss'), ('AH', 'io'), ('N', 'n')]),
         ]
         self._test_pronunciations(tests)
 
-    def testDoubleConsonantSingleSound(self):
+    def testDoubleConsonant(self):
         tests = [
             ('acknowledge', [('AE', 'a'), ('K', 'ck'), ('N', 'n'), ('AA', 'ow'), ('L', 'l'), ('IH', 'e'), ('JH', 'dg'), ('', 'e')]),
         ]
@@ -122,6 +124,7 @@ class TestPronunciation(unittest.TestCase):
             ('sun', [('S', 's'), ('AH', 'u'), ('N', 'n')]),
             ('piece', [('P', 'p'), ('IY', 'ie'), ('S', 'c'), ('', 'e')]),
             ('shot', [('SH', 'sh'), ('AA', 'o'), ('T', 't')]),
+            ('accession', [('AH', 'a'), ('K', 'c'), ('S', 'c'), ('EH', 'e'), ('SH', 'ss'), ('AH', 'io'), ('N', 'n')]),
             ('nation', [('N', 'n'), ('EY', 'a'), ('SH', 'ti'), ('AH', 'o'), ('N', 'n')]),
             ('attache', [('AE', 'a'), ('T', 'tt'), ('AH', 'a'), ('SH', 'ch'), ('EY', 'e')]),
             ('thick', [('TH', 'th'), ('IH', 'i'), ('K', 'ck')]),

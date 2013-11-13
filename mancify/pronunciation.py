@@ -7,7 +7,7 @@ from __future__ import (
 
 import re
 from collections import namedtuple
-from itertools import chain
+from itertools import izip_longest
 
 from nltk.corpus import cmudict
 
@@ -17,7 +17,7 @@ phoneme_dict = cmudict.dict()
 
 
 # Regex match a digit
-re_digits = re.compile(r'\d')
+match_digits = re.compile(r'\d')
 
 
 # A phoneme with associated word fragment
@@ -89,7 +89,8 @@ phoneme_sounds = {
     "P":    ['p'],                  # 'p' as in 'pee'
     "R":    ['r'],                  # 'r' as in 'read'
     "S":    ['c', 's'],             # 's' as in 'sea'
-    "SH":   ['ch', 'sh', 'ti'],     # 'sh' as in 'she'
+    "SH":   ['ch', 'sh', 'ti',      # 'sh' as in 'she'
+             'ss'],
     "T":    ['t'],                  # 't' as in 'tea'
     "TH":   ['th'],                 # 'th' as in 'theta'
     "V":    ['v'],                  # 'v' as in 'vee'
@@ -103,6 +104,8 @@ phoneme_sounds = {
 
 def spell(phoneme):
     """Return the most intuitive spelling for the given phoneme.
+
+    For example, for 'S', return 's' rather than the possible 'c'.
     
     Return the empty string if the given phoneme is not recognised.
 
@@ -116,16 +119,25 @@ def partition_score(partition):
     return len(prefix), -len(consonant)
 
 
-def match_consonant(text, consonant_phoneme):
+def match_consonant(text, consonant_phoneme, next_phoneme=None):
     """Find the best matching consonant given a consonant phoneme.
-    
-    Return partitioned text as a 3-tuple i.e. (prefix, consonant, suffix).
 
-    >>> match_consonant('observe', 'Z')
-    ('ob', 's', 'erve')
+    Return partitioned text as a 3-tuple i.e. (prefix, consonant, suffix). Note that the
+    'consonant' might be a diphthong or doubled letter, for example, "th", "ng", "tch", "tt".
     
-    Note that the best consonant might be a diphthong or doubled letter.
-    For example, "th", "ng", "tch", "tt".
+    The best match will generally be the first possible consonant with the greediest
+    number of letters. For example, looking for sound 'T' in 'attach', the first match
+    is the first 't', but the greediest acceptable match is 'tt' representing that sound.
+     
+    >>> match_consonant('attach', 'T')
+    (u'a', u'tt', u'ach')
+    
+    The next_phoneme is optionally given as a look ahead to confirm greediness. For example,
+    looking for 'K' in 'accept' where 'S' is the next phoneme, will only return the first 'c'
+    because the second 'c' qualifies for representing the following 'S' phoneme:
+
+    >>> match_consonant('accept', 'K', 'S')
+    (u'a', u'c', u'cept')
 
     """
     partitions = [text.partition(consonant)
@@ -136,8 +148,9 @@ def match_consonant(text, consonant_phoneme):
         return '', '', text
 
     prefix, consonant, suffix = min(partitions, key=partition_score)
-    # Check for doubled consonants e.g. 's' in assert
-    if suffix.startswith(consonant):
+    # Check for doubled consonants e.g. 's' in assert.
+    # Avoid doubling when second consonant represents a new sound e.g. 'c' in success.
+    if suffix.startswith(consonant) and suffix[0] not in phoneme_sounds.get(next_phoneme, []):
         return prefix, consonant + consonant, suffix[1:]
     else:
         return prefix, consonant, suffix
@@ -154,7 +167,12 @@ def distribute_letters(phonemes, letters):
     """
     step = int(round(len(letters) / len(phonemes)))
     return [Phoneme(phoneme=phoneme, spelling=letters[i * step: (i + 1) * step])
-             for i, phoneme in enumerate(phonemes)]
+            for i, phoneme in enumerate(phonemes)]
+
+
+def phonemes(word):
+    """Return a list of phonemes for the given word.""" 
+    return [match_digits.sub('', p) for p in phoneme_dict[word.lower()][0]]
 
 
 def pronounce(word):
@@ -170,17 +188,23 @@ def pronounce(word):
     [('AH0', u'a'), ('S', u'ss'), ('ER1', u'er'), ('T', u't')]
 
     Raises KeyError if the word is not recognised.
+
     """
     remainder = word.lower()
     vowel_phonemes = []
     result = []
-    pronunciation = [re_digits.sub('', p) for p in phoneme_dict[word.lower()][0]]
-    for phoneme in pronunciation:
+
+    # Get phonemes for the given word zipped with same phonemes looking forward one index
+    pronunciation = phonemes(word)
+    pronunciation2 = iter(pronunciation)
+    next(pronunciation2)
+    for phoneme, next_phoneme in izip_longest(pronunciation, pronunciation2):
+        # 'Collect' vowel sounds until we hit a consonant sound
         if phoneme[0] in 'AEIOU':
             vowel_phonemes.append(phoneme)
             continue
 
-        vowel, consonant, remainder = match_consonant(remainder, phoneme)
+        vowel, consonant, remainder = match_consonant(remainder, phoneme, next_phoneme)
         if vowel_phonemes:
             result.extend(distribute_letters(vowel_phonemes, vowel))
             vowel_phonemes = []
@@ -192,8 +216,10 @@ def pronounce(word):
             break
 
     if vowel_phonemes:
+        # Add terminal pronounced vowels e.g. 'ie' in 'auntie'
         result.extend(distribute_letters(vowel_phonemes, remainder))
     elif remainder:
+        # Add terminal unpronounced vowels e.g. silent 'e' in 'home'
         result.append(Phoneme(phoneme='', spelling=remainder))
 
     return result
