@@ -17,7 +17,7 @@ import nltk
 from nltk.tokenize import wordpunct_tokenize
 from nltk.corpus import cmudict
 
-from .pronunciation import pronounce, spell, Phoneme
+from .pronunciation import pronounce, grapheme, Phoneme
 from .dialects import manc
 
 
@@ -123,11 +123,11 @@ def alter_phonemes(word, dialect, phonetic=False):
         for pattern in patterns:
             for i in range(len(phons)):
                 if phoneme_match(phons,i,pattern):
-                    r = [phons[i+rfon] if type(rfon)==int else Phoneme(phoneme=rfon, spelling=spell(rfon)) for rfon in replacement]
+                    r = [phons[i+rfon] if type(rfon)==int else Phoneme(phoneme=rfon, grapheme=grapheme(rfon)) for rfon in replacement]
                     phons = phons[:i] + r + phons[i+len(pattern):]
 
     logging.debug('Phoneme Out=[%s->%s]', word, phons)
-    return "".join((p.spelling if not phonetic else spell(p.phoneme)) for p in phons[1:-1])
+    return "".join((p.grapheme if not phonetic else grapheme(p.phoneme)) for p in phons[1:-1])
 
 
 def replace_random(word,dialect):

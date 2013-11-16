@@ -21,10 +21,10 @@ match_digits = re.compile(r'\d')
 
 
 # A phoneme with associated word fragment
-Phoneme = namedtuple('Phoneme', 'phoneme, spelling')
+Phoneme = namedtuple('Phoneme', 'phoneme, grapheme')
 
 
-# The most intuitive English spelling for a given phoneme
+# The most intuitive English grapheme for a given phoneme
 phoneme_reprs = {
     "AA":   "o",    # 'o' as in 'odd'
     "AE":   "a",    # 'a' as in 'at'
@@ -69,7 +69,7 @@ phoneme_reprs = {
 }
 
 
-# For each phoneme, a list of spellings for English
+# For each phoneme, a list of grapheme for English
 # consonants which might give rise to that phoneme.
 phoneme_sounds = {
     "B":    ['b'],                  # 'b' as in 'bee'
@@ -120,8 +120,8 @@ phoneme_sounds = {
 }
 
 
-def spell(phoneme):
-    """Return the most intuitive spelling for the given phoneme.
+def grapheme(phoneme):
+    """Return the most intuitive grapheme for the given phoneme.
 
     For example, for 'S', return 's' rather than the possible 'c'.
     
@@ -132,9 +132,9 @@ def spell(phoneme):
 
 
 def partition_score(partition):
-    """For a 3-tuple of strings (a, b, c) provide a lower score for a smaller a and larger b."""
-    prefix, consonant, suffix = partition
-    return len(prefix), -len(consonant)
+    """For a 3-tuple of strings (a, b, c), return a higher score for a smaller a and larger b."""
+    a, b, c = partition
+    return -len(a), len(b)
 
 
 def match_consonant(text, consonant_phoneme, next_phoneme=None):
@@ -144,11 +144,11 @@ def match_consonant(text, consonant_phoneme, next_phoneme=None):
     'consonant' might be a diphthong or doubled letter, for example, "th", "ng", "tch", "tt".
     
     The best match will generally be the first possible consonant with the greediest
-    number of letters. For example, looking for sound 'T' in 'attach', the first match
-    is the first 't', but the greediest acceptable match is 'tt' representing that sound.
+    number of letters. For example, looking for sound 'K' in 'snack', the first match
+    is the first 'c', but the greediest acceptable match is 'ck' representing that sound.
      
-    >>> match_consonant('attach', 'T')
-    (u'a', u'tt', u'ach')
+    >>> match_consonant('snack', 'K')
+    (u'sna', u'ck', u'')
     
     The next_phoneme is optionally given as a look ahead to confirm greediness. For example,
     looking for 'K' in 'accept' where 'S' is the next phoneme, will only return the first 'c'
@@ -165,7 +165,10 @@ def match_consonant(text, consonant_phoneme, next_phoneme=None):
     if not partitions:
         return '', '', text
 
-    prefix, consonant, suffix = min(partitions, key=partition_score)
+    # Search for the first possible consonant.
+    # Favour a larger number of letters e.g. 'ck' rather than 'c'.
+    prefix, consonant, suffix = max(partitions, key=partition_score)
+
     # Check for doubled consonants e.g. 's' in assert.
     # Avoid doubling when second consonant represents a new sound e.g. 'c' in success.
     if suffix.startswith(consonant) and suffix[0] not in phoneme_sounds.get(next_phoneme, []):
@@ -184,7 +187,7 @@ def distribute_letters(phonemes, letters):
     
     """
     step = int(round(len(letters) / len(phonemes)))
-    return [Phoneme(phoneme=phoneme, spelling=letters[i * step: (i + 1) * step])
+    return [Phoneme(phoneme=phoneme, grapheme=letters[i * step: (i + 1) * step])
             for i, phoneme in enumerate(phonemes)]
 
 
@@ -199,7 +202,7 @@ def pronounce(word):
     to retain the association by pinning consonant phonemes to the most likely consonant
     letters in the word and distributing the remaining letters to the vowel phonemes.
 
-    Returns a list of 2-tuples of type Phoneme: [(phoneme, spelling), ...]
+    Returns a list of 2-tuples of type Phoneme: [(phoneme, grapheme), ...]
 
     For example:
     >>> pronounce('assert')
@@ -227,8 +230,8 @@ def pronounce(word):
             result.extend(distribute_letters(vowel_phonemes, vowel))
             vowel_phonemes = []
         elif vowel:
-            result.append(Phoneme(phoneme='', spelling=vowel))
-        result.append(Phoneme(phoneme=phoneme, spelling=consonant))
+            result.append(Phoneme(phoneme='', grapheme=vowel))
+        result.append(Phoneme(phoneme=phoneme, grapheme=consonant))
 
         if not remainder:
             break
@@ -238,6 +241,6 @@ def pronounce(word):
         result.extend(distribute_letters(vowel_phonemes, remainder))
     elif remainder:
         # Add terminal unpronounced vowels e.g. silent 'e' in 'home'
-        result.append(Phoneme(phoneme='', spelling=remainder))
+        result.append(Phoneme(phoneme='', grapheme=remainder))
 
     return result
