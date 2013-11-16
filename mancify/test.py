@@ -125,7 +125,7 @@ class TestPronunciation(unittest.TestCase):
             ('piece', [('P', 'p'), ('IY', 'ie'), ('S', 'c'), ('', 'e')]),
             ('shot', [('SH', 'sh'), ('AA', 'o'), ('T', 't')]),
             ('accession', [('AH', 'a'), ('K', 'c'), ('S', 'c'), ('EH', 'e'), ('SH', 'ss'), ('AH', 'io'), ('N', 'n')]),
-            ('nation', [('N', 'n'), ('EY', 'a'), ('SH', 'ti'), ('AH', 'o'), ('N', 'n')]),
+            ('nation', [('N', 'n'), ('EY', 'a'), ('SH', 't'), ('AH', 'io'), ('N', 'n')]),
             ('attache', [('AE', 'a'), ('T', 'tt'), ('AH', 'a'), ('SH', 'ch'), ('EY', 'e')]),
             ('thick', [('TH', 'th'), ('IH', 'i'), ('K', 'ck')]),
             ('vat', [('V', 'v'), ('AE', 'a'), ('T', 't')]),
@@ -136,5 +136,6 @@ class TestPronunciation(unittest.TestCase):
             ('phase', [('F', 'ph'), ('EY', 'a'), ('Z', 's'), ('', 'e')]),
             ('seizure', [('S', 's'), ('IY', 'ei'), ('ZH', 'z'), ('ER', 'ure')]),
             ('jacque', [('ZH', 'j'), ('EY', 'a'), ('K', 'cq'), ('', 'ue')]),
+            ('occasion', [('AH', 'o'), ('K', 'cc'), ('EY', 'a'), ('ZH', 's'), ('AH', 'io'), ('N', 'n')]),
         ]
         self._test_pronunciations(tests)
