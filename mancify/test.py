@@ -131,6 +131,7 @@ class TestPronunciation(unittest.TestCase):
             ('vat', [('V', 'v'), ('AE', 'a'), ('T', 't')]),
             ('aqua', [('AE', 'a'), ('K', 'q'), ('W', 'u'), ('AH', 'a')]),
             ('ye', [('Y', 'y'), ('IY', 'e')]),
+            ('uniform', [('Y', 'u'), ('UW', ''), ('N', 'n'), ('AH', 'i'), ('F', 'f'), ('AO', 'o'), ('R', 'r'), ('M', 'm')]),
             ('spaniel', [('S', 's'), ('P', 'p'), ('AE', 'a'), ('N', 'n'), ('Y', 'i'), ('AH', 'e'), ('L', 'l')]),
             ('zoo', [('Z', 'z'), ('UW', 'oo')]),
             ('phase', [('F', 'ph'), ('EY', 'a'), ('Z', 's'), ('', 'e')]),
