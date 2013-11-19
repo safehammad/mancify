@@ -21,6 +21,10 @@ from .pronunciation import pronounce, grapheme, Phoneme
 from .dialects import manc
 
 
+# Regex match a digit
+match_digits = re.compile(r'\d')
+
+
 def translate(text, dialect=manc, seed=None):
     """Translate from plain English to given dialect."""
     random.seed(seed)
@@ -64,9 +68,10 @@ def pos_tag_match(tagged,i,pattern):
     return True
     
 
-def phoneme_match(phons,i,pattern):
-    for j,pfon in enumerate(pattern):
-        if i+j >= len(phons):
+def match_phoneme(phons, i, pattern):
+    """Match the given pattern from position i in a sequence of phonemes."""
+    for j, pfon in enumerate(pattern):
+        if i + j >= len(phons):
             return False
         next_phoneme = phons[i + j][0]
         if not next_phoneme:
@@ -79,7 +84,8 @@ def phoneme_match(phons,i,pattern):
             if next_phoneme[0] in 'AEIOU':
                 return False
             continue
-        elif pfon != next_phoneme: 
+        # Match vowel stress digit if exists in pattern otherwise ignore
+        elif pfon != (next_phoneme if pfon[-1].isdigit() else match_digits.sub('', next_phoneme)):
             return False
 
     return True
@@ -122,7 +128,7 @@ def alter_phonemes(word, dialect, phonetic=False):
     for patterns, replacement in dialect.phoneme_rules:
         for pattern in patterns:
             for i in range(len(phons)):
-                if phoneme_match(phons,i,pattern):
+                if match_phoneme(phons,i,pattern):
                     r = [phons[i+rfon] if type(rfon)==int else Phoneme(phoneme=rfon, grapheme=grapheme(rfon)) for rfon in replacement]
                     phons = phons[:i] + r + phons[i+len(pattern):]
 

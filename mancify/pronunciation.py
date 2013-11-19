@@ -5,7 +5,6 @@ from __future__ import (
     print_function,
 )
 
-import re
 from collections import namedtuple
 from itertools import izip_longest
 
@@ -14,10 +13,6 @@ from nltk.corpus import cmudict
 
 # The CMU pronunciation dictionary
 phoneme_dict = cmudict.dict()
-
-
-# Regex match a digit
-match_digits = re.compile(r'\d')
 
 
 # A phoneme with associated word fragment
@@ -101,8 +96,8 @@ phoneme_sounds = {
              's'],    # 's' as in 'sea'
     "SH":   ['ch',    # 'ch' as in 'attache'
              'sh',    # 'sh' as in 'she'
-             'ss',    # 'ss' as in 'session'
-             'ti'],   # 't' as in 'nation'
+             'ssi',   # 'ssi' as in 'session'
+             'ti'],   # 'ti' as in 'nation'
     "T":    ['t'],    # 't' as in 'tea'
     "TH":   ['th'],   # 'th' as in 'theta'
     "V":    ['v'],    # 'v' as in 'vent'
@@ -115,7 +110,7 @@ phoneme_sounds = {
              'z'],    # 'z' as in 'zebra'
     "ZH":   ['g',     # 'g' as in 'mirage'
              'j',     # 'j' as in 'jacque'
-             'si',    # 's' as in occasion
+             'si',    # 'si' as in occasion
              'z'],    # 'z' as in 'seizure'
     "'":    ["'"],    # glottal stop
 }
@@ -194,7 +189,7 @@ def distribute_letters(phonemes, letters):
 
 def phonemes(word):
     """Return a list of phonemes for the given word.""" 
-    return [match_digits.sub('', p) for p in phoneme_dict[word.lower()][0]]
+    return phoneme_dict[word.lower()][0]
 
 
 def pronounce(word):
